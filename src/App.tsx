@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Buildings from "./pages/Buildings";
 import Units from "./pages/Units";
+import Residents from "./pages/Residents";
 import Maintenance from "./pages/Maintenance";
 import Fees from "./pages/Fees";
 import Settings from "./pages/Settings";
@@ -29,10 +30,10 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/buildings" element={<Buildings />} />
             <Route path="/units" element={<Units />} />
+            <Route path="/residents" element={<Residents />} />
             <Route path="/maintenance" element={<Maintenance />} />
             <Route path="/fees" element={<Fees />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/residents" element={<Navigate to="/units" replace />} />
             <Route path="/estimates" element={<Navigate to="/maintenance" replace />} />
             <Route path="/announcements" element={<Navigate to="/dashboard" replace />} />
             <Route path="/reports" element={<Navigate to="/dashboard" replace />} />

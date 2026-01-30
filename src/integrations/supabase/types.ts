@@ -411,6 +411,65 @@ export type Database = {
         }
         Relationships: []
       }
+      residents: {
+        Row: {
+          additional_info: string | null
+          created_at: string
+          created_by: string | null
+          email: string
+          fiscal_code: string | null
+          id: string
+          is_owner: boolean | null
+          move_in_date: string | null
+          move_out_date: string | null
+          name: string
+          surname: string
+          telephone: string | null
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          additional_info?: string | null
+          created_at?: string
+          created_by?: string | null
+          email: string
+          fiscal_code?: string | null
+          id?: string
+          is_owner?: boolean | null
+          move_in_date?: string | null
+          move_out_date?: string | null
+          name: string
+          surname: string
+          telephone?: string | null
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          additional_info?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          fiscal_code?: string | null
+          id?: string
+          is_owner?: boolean | null
+          move_in_date?: string | null
+          move_out_date?: string | null
+          name?: string
+          surname?: string
+          telephone?: string | null
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "residents_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       unit_residents: {
         Row: {
           created_at: string
