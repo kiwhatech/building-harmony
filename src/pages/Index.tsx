@@ -14,7 +14,7 @@ const Index = () => {
           </div>
           
           <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-            Welcome to <span className="text-primary">CondoManager</span>
+            Welcome to <span className="text-primary">Harmony</span>
           </h1>
           
           <p className="mb-8 max-w-2xl text-lg text-muted-foreground sm:text-xl">
@@ -101,7 +101,7 @@ const Index = () => {
             Ready to streamline your condo management?
           </h2>
           <p className="mb-8 text-lg opacity-90">
-            Join thousands of condominiums already using CondoManager to simplify their operations.
+            Join thousands of condominiums already using Harmony to simplify their operations.
           </p>
           <Button asChild size="lg" variant="secondary" className="text-lg px-8">
             <Link to="/auth">Start Free Today</Link>
@@ -112,7 +112,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t py-8">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© 2024 CondoManager. All rights reserved.</p>
+          <p>© 2024 Harmony. All rights reserved.</p>
         </div>
       </footer>
     </div>
