@@ -75,7 +75,7 @@ export function AppSidebar() {
             <Building2 className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-lg font-semibold text-sidebar-foreground">CondoManager</h1>
+            <h1 className="text-lg font-semibold text-sidebar-foreground">Harmony</h1>
             <p className="text-xs text-muted-foreground">Management Platform</p>
           </div>
         </Link>
