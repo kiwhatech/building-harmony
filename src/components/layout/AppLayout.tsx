@@ -8,7 +8,7 @@ import { Loader2 } from 'lucide-react';
 
 interface AppLayoutProps {
   children: ReactNode;
-  title?: string;
+  title?: ReactNode;
   description?: string;
 }
 
