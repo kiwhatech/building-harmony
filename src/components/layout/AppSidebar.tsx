@@ -13,8 +13,6 @@ import {
   LogOut,
   Bell,
   ChevronDown,
-  MessageSquare,
-  CalendarDays,
   Vote,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -68,9 +66,8 @@ const residentMainNavItems = [
 ];
 
 const residentServicesNavItems = [
-  { icon: Wrench, label: 'Maintenance', href: '/maintenance' },
+  { icon: Wrench, label: 'Requests', href: '/requests' },
   { icon: DollarSign, label: 'Payments', href: '/fees' },
-  { icon: CalendarDays, label: 'Bookings', href: '/bookings' },
 ];
 
 const residentCommunityNavItems = [
