@@ -30,6 +30,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import {
   Home,
@@ -69,6 +70,8 @@ interface Building {
 }
 
 export default function Units() {
+  const { hasRole } = useAuth();
+  const isAdmin = hasRole('admin');
   const [units, setUnits] = useState<Unit[]>([]);
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -260,19 +263,20 @@ export default function Units() {
               </SelectContent>
             </Select>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={(open) => {
-            setIsDialogOpen(open);
-            if (!open) resetForm();
-          }}>
-            <DialogTrigger asChild>
-              <Button disabled={buildings.length === 0}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Unit
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <form onSubmit={handleSubmit}>
-                <DialogHeader>
+          {isAdmin && (
+            <Dialog open={isDialogOpen} onOpenChange={(open) => {
+              setIsDialogOpen(open);
+              if (!open) resetForm();
+            }}>
+              <DialogTrigger asChild>
+                <Button disabled={buildings.length === 0}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Unit
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <form onSubmit={handleSubmit}>
+                  <DialogHeader>
                   <DialogTitle>{editingUnit ? 'Edit Unit' : 'Add New Unit'}</DialogTitle>
                   <DialogDescription>
                     {editingUnit
@@ -368,10 +372,11 @@ export default function Units() {
                       'Create Unit'
                     )}
                   </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
 
         {/* Units Table */}
@@ -403,9 +408,11 @@ export default function Units() {
               <p className="mb-4 text-center text-muted-foreground">
                 {searchQuery || selectedBuilding !== 'all'
                   ? 'No units match your filters.'
-                  : 'Get started by adding your first unit.'}
+                  : isAdmin
+                  ? 'Get started by adding your first unit.'
+                  : 'No units available yet.'}
               </p>
-              {!searchQuery && selectedBuilding === 'all' && (
+              {!searchQuery && selectedBuilding === 'all' && isAdmin && (
                 <Button onClick={() => setIsDialogOpen(true)}>
                   <Plus className="mr-2 h-4 w-4" />
                   Add Unit
@@ -423,7 +430,7 @@ export default function Units() {
                   <TableHead>Floor</TableHead>
                   <TableHead>Details</TableHead>
                   <TableHead>Residents</TableHead>
-                  <TableHead className="w-12"></TableHead>
+                  {isAdmin && <TableHead className="w-12"></TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -468,28 +475,30 @@ export default function Units() {
                         {unit.residents_count || 0}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => openEditDialog(unit)}>
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleDelete(unit.id)}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+                    {isAdmin && (
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => openEditDialog(unit)}>
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDelete(unit.id)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
