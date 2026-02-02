@@ -461,18 +461,20 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Wrench className="h-5 w-5 text-info" />
-                My Requests
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-info">{residentStats.myOpenRequests}</p>
-              <p className="text-sm text-muted-foreground">Open maintenance</p>
-            </CardContent>
-          </Card>
+          <Link to="/maintenance">
+            <Card className="transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Wrench className="h-5 w-5 text-info" />
+                  My Requests
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-info">{residentStats.myOpenRequests}</p>
+                <p className="text-sm text-muted-foreground">Open maintenance</p>
+              </CardContent>
+            </Card>
+          </Link>
 
           <Card>
             <CardHeader className="pb-2">
