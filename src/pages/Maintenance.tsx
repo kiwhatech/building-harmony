@@ -199,13 +199,31 @@ export default function Maintenance() {
         .from('maintenance_requests')
         .select(`
           *,
-          units!inner(unit_number, building_id, buildings!inner(id, name)),
-          requester:profiles!maintenance_requests_requested_by_fkey(full_name),
-          assignee:profiles!maintenance_requests_assigned_to_fkey(full_name)
+          units!inner(unit_number, building_id, buildings!inner(id, name))
         `)
         .order('created_at', { ascending: false });
 
       if (requestsError) throw requestsError;
+
+      // Fetch profile names for requesters and assignees
+      const userIds = new Set<string>();
+      (requestsData || []).forEach((req: any) => {
+        if (req.requested_by) userIds.add(req.requested_by);
+        if (req.assigned_to) userIds.add(req.assigned_to);
+      });
+
+      let profilesMap: Record<string, string> = {};
+      if (userIds.size > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', Array.from(userIds));
+        
+        profilesMap = (profilesData || []).reduce((acc: Record<string, string>, p: any) => {
+          acc[p.id] = p.full_name || 'Unknown';
+          return acc;
+        }, {});
+      }
 
       setRequests(
         (requestsData || []).map((req: any) => ({
@@ -213,8 +231,8 @@ export default function Maintenance() {
           unit_number: req.units?.unit_number,
           building_id: req.units?.buildings?.id,
           building_name: req.units?.buildings?.name,
-          requested_by_name: req.requester?.full_name,
-          assigned_to_name: req.assignee?.full_name,
+          requested_by_name: profilesMap[req.requested_by] || 'Unknown',
+          assigned_to_name: req.assigned_to ? profilesMap[req.assigned_to] : undefined,
         }))
       );
     } catch (error) {
