@@ -259,17 +259,81 @@ export default function Maintenance() {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from('maintenance_requests').insert({
-        unit_id: formUnitId,
-        title: formTitle.trim(),
-        description: formDescription.trim() || null,
-        category: formCategory,
-        priority: parseInt(formPriority),
-        requested_by: user.id,
-        status: 'requested',
-      });
+      // Get building and unit details for email
+      const selectedUnit = units.find(u => u.id === formUnitId);
+      const selectedBuilding = buildings.find(b => b.id === formBuildingId);
+      
+      // Get requester profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('full_name, email')
+        .eq('id', user.id)
+        .single();
+
+      // Get admin emails (users with admin role)
+      const { data: adminRoles } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'admin');
+
+      let adminEmails: string[] = [];
+      if (adminRoles && adminRoles.length > 0) {
+        const adminIds = adminRoles.map(r => r.user_id);
+        const { data: adminProfiles } = await supabase
+          .from('profiles')
+          .select('email')
+          .in('id', adminIds);
+        
+        adminEmails = (adminProfiles || []).map(p => p.email).filter(Boolean);
+      }
+
+      const priorityLabel = priorityConfig[parseInt(formPriority)]?.label || 'Medium';
+
+      const { data: insertedRequest, error } = await supabase
+        .from('maintenance_requests')
+        .insert({
+          unit_id: formUnitId,
+          title: formTitle.trim(),
+          description: formDescription.trim() || null,
+          category: formCategory,
+          priority: parseInt(formPriority),
+          requested_by: user.id,
+          status: 'requested',
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Send email notification
+      if (adminEmails.length > 0) {
+        try {
+          const { error: emailError } = await supabase.functions.invoke('send-maintenance-notification', {
+            body: {
+              requestId: insertedRequest.id,
+              requesterName: profileData?.full_name || user.email || 'Unknown',
+              requesterEmail: profileData?.email || user.email || '',
+              buildingName: selectedBuilding?.name || 'Unknown Building',
+              unitNumber: selectedUnit?.unit_number || 'Unknown',
+              title: formTitle.trim(),
+              description: formDescription.trim() || null,
+              priority: priorityLabel,
+              createdAt: insertedRequest.created_at,
+              appUrl: window.location.origin,
+              adminEmails: adminEmails,
+            },
+          });
+
+          if (emailError) {
+            console.error('Email notification failed:', emailError);
+            // Don't fail the request if email fails
+          } else {
+            console.log('Email notification sent successfully');
+          }
+        } catch (emailErr) {
+          console.error('Error sending email notification:', emailErr);
+        }
+      }
 
       toast.success('Request submitted successfully');
       setIsDialogOpen(false);
