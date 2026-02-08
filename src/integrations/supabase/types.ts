@@ -141,6 +141,75 @@ export type Database = {
         }
         Relationships: []
       }
+      documents: {
+        Row: {
+          building_id: string | null
+          category: Database["public"]["Enums"]["document_category"]
+          created_at: string
+          description: string | null
+          expires_at: string | null
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          status: Database["public"]["Enums"]["document_status"]
+          title: string
+          unit_id: string | null
+          updated_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          building_id?: string | null
+          category: Database["public"]["Enums"]["document_category"]
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          status?: Database["public"]["Enums"]["document_status"]
+          title: string
+          unit_id?: string | null
+          updated_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          building_id?: string | null
+          category?: Database["public"]["Enums"]["document_category"]
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          status?: Database["public"]["Enums"]["document_status"]
+          title?: string
+          unit_id?: string | null
+          updated_at?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       estimates: {
         Row: {
           amount: number
@@ -601,6 +670,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "resident" | "provider"
+      document_category: "building" | "insurance" | "unit"
+      document_status: "active" | "expired" | "expiring_soon" | "archived"
       estimate_status: "pending" | "approved" | "rejected"
       maintenance_category:
         | "plumbing"
@@ -750,6 +821,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "resident", "provider"],
+      document_category: ["building", "insurance", "unit"],
+      document_status: ["active", "expired", "expiring_soon", "archived"],
       estimate_status: ["pending", "approved", "rejected"],
       maintenance_category: [
         "plumbing",
