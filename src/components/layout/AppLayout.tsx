@@ -5,6 +5,7 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/s
 import { AppSidebar } from './AppSidebar';
 import { Separator } from '@/components/ui/separator';
 import { Loader2 } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -35,13 +36,16 @@ export function AppLayout({ children, title, description }: AppLayoutProps) {
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
           {title && (
-            <div>
+            <div className="flex-1">
               <h1 className="text-lg font-semibold">{title}</h1>
               {description && (
                 <p className="text-sm text-muted-foreground">{description}</p>
               )}
             </div>
           )}
+          <div className="ml-auto">
+            <ThemeToggle />
+          </div>
         </header>
         <main className="flex-1 p-6">
           <div className="animate-fade-in">
