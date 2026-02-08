@@ -14,6 +14,7 @@ import {
   Bell,
   ChevronDown,
   Vote,
+  FolderOpen,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
@@ -45,6 +46,7 @@ const adminMainNavItems = [
   { icon: Building2, label: 'Buildings', href: '/buildings' },
   { icon: Home, label: 'Units', href: '/units' },
   { icon: Users, label: 'Residents', href: '/residents' },
+  { icon: FolderOpen, label: 'Documents', href: '/documents' },
 ];
 
 const adminManagementNavItems = [
@@ -63,6 +65,7 @@ const residentMainNavItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
   { icon: Home, label: 'My Unit', href: '/units' },
   { icon: Building2, label: 'My Building', href: '/buildings' },
+  { icon: FolderOpen, label: 'Documents', href: '/documents' },
 ];
 
 const residentServicesNavItems = [
