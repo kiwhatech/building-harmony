@@ -16,6 +16,7 @@ import Fees from "./pages/Fees";
 import Settings from "./pages/Settings";
 import Announcements from "./pages/Announcements";
 import Documents from "./pages/Documents";
+import CondoFees from "./pages/CondoFees";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/estimates" element={<Navigate to="/maintenance" replace />} />
             <Route path="/announcements" element={<Announcements />} />
             <Route path="/documents" element={<Documents />} />
+            <Route path="/condo-fees" element={<CondoFees />} />
             <Route path="/reports" element={<Navigate to="/dashboard" replace />} />
             <Route path="/notifications" element={<Navigate to="/dashboard" replace />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

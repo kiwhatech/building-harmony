@@ -15,6 +15,7 @@ import {
   ChevronDown,
   Vote,
   FolderOpen,
+  Calculator,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
@@ -51,6 +52,7 @@ const adminMainNavItems = [
 
 const adminManagementNavItems = [
   { icon: DollarSign, label: 'Fees', href: '/fees' },
+  { icon: Calculator, label: 'Condo Fees', href: '/condo-fees' },
   { icon: Wrench, label: 'Maintenance', href: '/maintenance' },
   { icon: FileText, label: 'Estimates', href: '/estimates' },
 ];
