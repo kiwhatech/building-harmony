@@ -61,6 +61,92 @@ export type Database = {
           },
         ]
       }
+      budget_categories: {
+        Row: {
+          budget_id: string
+          code: string
+          created_at: string
+          id: string
+          label: string
+          millesimi_table_id: string
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          budget_id: string
+          code: string
+          created_at?: string
+          id?: string
+          label: string
+          millesimi_table_id: string
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          budget_id?: string
+          code?: string
+          created_at?: string
+          id?: string
+          label?: string
+          millesimi_table_id?: string
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_categories_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "building_budgets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_categories_millesimi_table_id_fkey"
+            columns: ["millesimi_table_id"]
+            isOneToOne: false
+            referencedRelation: "millesimi_tables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      building_budgets: {
+        Row: {
+          building_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          total_amount: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          building_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          total_amount?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          building_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          total_amount?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "building_budgets_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       building_members: {
         Row: {
           building_id: string
@@ -363,6 +449,83 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "maintenance_requests_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      millesimi_tables: {
+        Row: {
+          building_id: string
+          code: string
+          created_at: string
+          id: string
+          label: string
+          updated_at: string
+        }
+        Insert: {
+          building_id: string
+          code: string
+          created_at?: string
+          id?: string
+          label: string
+          updated_at?: string
+        }
+        Update: {
+          building_id?: string
+          code?: string
+          created_at?: string
+          id?: string
+          label?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "millesimi_tables_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      millesimi_values: {
+        Row: {
+          created_at: string
+          id: string
+          millesimi_table_id: string
+          unit_id: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          millesimi_table_id: string
+          unit_id: string
+          updated_at?: string
+          value?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          millesimi_table_id?: string
+          unit_id?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "millesimi_values_millesimi_table_id_fkey"
+            columns: ["millesimi_table_id"]
+            isOneToOne: false
+            referencedRelation: "millesimi_tables"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "millesimi_values_unit_id_fkey"
             columns: ["unit_id"]
             isOneToOne: false
             referencedRelation: "units"
