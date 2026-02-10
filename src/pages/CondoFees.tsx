@@ -76,6 +76,7 @@ export default function CondoFees() {
   // Millesimi inline editing
   const [editingValues, setEditingValues] = useState<Record<string, Record<string, string>>>({});
   const [savingMillesimi, setSavingMillesimi] = useState(false);
+  const [isSavingFees, setIsSavingFees] = useState(false);
 
   useEffect(() => { fetchAll(); }, []);
 
@@ -278,6 +279,51 @@ export default function CondoFees() {
       perUnitFees,
       notes,
     });
+  };
+
+  // ── Save fee plan to fees table ──
+  const saveFeePlan = async () => {
+    if (!calcResult || !user) return;
+    setIsSavingFees(true);
+    try {
+      // Delete existing fees for this building and year (based on description pattern)
+      const yearTag = `[${calcResult.year}]`;
+      const { data: existingFees } = await supabase
+        .from('fees')
+        .select('id')
+        .eq('building_id', calcResult.buildingId)
+        .like('description', `${yearTag}%`);
+
+      if (existingFees && existingFees.length > 0) {
+        const { error: delErr } = await supabase
+          .from('fees')
+          .delete()
+          .in('id', existingFees.map(f => f.id));
+        if (delErr) throw delErr;
+      }
+
+      // Insert new fee records
+      const dueDate = `${calcResult.year}-12-31`;
+      const feeInserts = calcResult.perUnitFees.map(uf => ({
+        building_id: calcResult.buildingId,
+        unit_id: uf.unitId,
+        description: `${yearTag} ${uf.breakdown.map(b => b.categoryLabel).join(', ')}`,
+        amount: uf.totalYearlyFee,
+        due_date: dueDate,
+        status: 'pending' as const,
+        created_by: user.id,
+      }));
+
+      const { error: insErr } = await supabase.from('fees').insert(feeInserts);
+      if (insErr) throw insErr;
+
+      toast.success(`Fee plan for ${calcResult.year} saved successfully (${feeInserts.length} fees)`);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || 'Failed to save fee plan');
+    } finally {
+      setIsSavingFees(false);
+    }
   };
 
   const addCategory = () => {
@@ -590,9 +636,17 @@ export default function CondoFees() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={calculateFees} disabled={buildingBudgets.length === 0}>
-                <Calculator className="mr-2 h-4 w-4" />Calculate Fees
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={calculateFees} disabled={buildingBudgets.length === 0}>
+                  <Calculator className="mr-2 h-4 w-4" />Calculate Fees
+                </Button>
+                {calcResult && (
+                  <Button onClick={saveFeePlan} disabled={isSavingFees} variant="default">
+                    {isSavingFees ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                    Save Fee Plan
+                  </Button>
+                )}
+              </div>
             </div>
 
             {calcResult ? (
