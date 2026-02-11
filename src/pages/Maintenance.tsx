@@ -4,17 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+
 import { Badge } from '@/components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { MaintenanceRequestWizard } from '@/components/maintenance/MaintenanceRequestWizard';
 import {
   Select,
   SelectContent,
@@ -116,15 +108,13 @@ export default function Maintenance() {
   const { user, hasRole } = useAuth();
   const isAdmin = hasRole('admin');
   
-  const [requests, setRequests] = useState<MaintenanceRequest[]>([]);
+   const [requests, setRequests] = useState<MaintenanceRequest[]>([]);
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
-  const [filteredUnits, setFilteredUnits] = useState<Unit[]>([]);
   const [providers, setProviders] = useState<{ id: string; name: string }[]>([]);
   
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -132,14 +122,6 @@ export default function Maintenance() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [buildingFilter, setBuildingFilter] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
-  
-  // Form state
-  const [formBuildingId, setFormBuildingId] = useState('');
-  const [formUnitId, setFormUnitId] = useState('');
-  const [formTitle, setFormTitle] = useState('');
-  const [formDescription, setFormDescription] = useState('');
-  const [formCategory, setFormCategory] = useState<MaintenanceCategory>('general');
-  const [formPriority, setFormPriority] = useState('2');
   
   // Detail view
   const [selectedRequest, setSelectedRequest] = useState<MaintenanceRequest | null>(null);
@@ -149,15 +131,6 @@ export default function Maintenance() {
   useEffect(() => {
     fetchData();
   }, []);
-
-  useEffect(() => {
-    if (formBuildingId) {
-      setFilteredUnits(units.filter(u => u.building_id === formBuildingId));
-      setFormUnitId('');
-    } else {
-      setFilteredUnits([]);
-    }
-  }, [formBuildingId, units]);
 
   const fetchData = async () => {
     try {
@@ -243,109 +216,6 @@ export default function Maintenance() {
     }
   };
 
-  const resetForm = () => {
-    setFormBuildingId('');
-    setFormUnitId('');
-    setFormTitle('');
-    setFormDescription('');
-    setFormCategory('general');
-    setFormPriority('2');
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !formUnitId) return;
-
-    setIsSubmitting(true);
-
-    try {
-      // Get building and unit details for email
-      const selectedUnit = units.find(u => u.id === formUnitId);
-      const selectedBuilding = buildings.find(b => b.id === formBuildingId);
-      
-      // Get requester profile
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('full_name, email')
-        .eq('id', user.id)
-        .single();
-
-      // Get admin emails (users with admin role)
-      const { data: adminRoles } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .eq('role', 'admin');
-
-      let adminEmails: string[] = [];
-      if (adminRoles && adminRoles.length > 0) {
-        const adminIds = adminRoles.map(r => r.user_id);
-        const { data: adminProfiles } = await supabase
-          .from('profiles')
-          .select('email')
-          .in('id', adminIds);
-        
-        adminEmails = (adminProfiles || []).map(p => p.email).filter(Boolean);
-      }
-
-      const priorityLabel = priorityConfig[parseInt(formPriority)]?.label || 'Medium';
-
-      const { data: insertedRequest, error } = await supabase
-        .from('maintenance_requests')
-        .insert({
-          unit_id: formUnitId,
-          title: formTitle.trim(),
-          description: formDescription.trim() || null,
-          category: formCategory,
-          priority: parseInt(formPriority),
-          requested_by: user.id,
-          status: 'requested',
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Send email notification
-      if (adminEmails.length > 0) {
-        try {
-          const { error: emailError } = await supabase.functions.invoke('send-maintenance-notification', {
-            body: {
-              requestId: insertedRequest.id,
-              requesterName: profileData?.full_name || user.email || 'Unknown',
-              requesterEmail: profileData?.email || user.email || '',
-              buildingName: selectedBuilding?.name || 'Unknown Building',
-              unitNumber: selectedUnit?.unit_number || 'Unknown',
-              title: formTitle.trim(),
-              description: formDescription.trim() || null,
-              priority: priorityLabel,
-              createdAt: insertedRequest.created_at,
-              appUrl: window.location.origin,
-              adminEmails: adminEmails,
-            },
-          });
-
-          if (emailError) {
-            console.error('Email notification failed:', emailError);
-            // Don't fail the request if email fails
-          } else {
-            console.log('Email notification sent successfully');
-          }
-        } catch (emailErr) {
-          console.error('Error sending email notification:', emailErr);
-        }
-      }
-
-      toast.success('Request submitted successfully');
-      setIsDialogOpen(false);
-      resetForm();
-      fetchData();
-    } catch (error: any) {
-      console.error('Error creating request:', error);
-      toast.error(error.message || 'Failed to create request');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const updateRequest = async (requestId: string, updates: Partial<MaintenanceRequest>) => {
     try {
@@ -425,138 +295,17 @@ export default function Maintenance() {
             )}
           </div>
           
-          <Dialog open={isDialogOpen} onOpenChange={(open) => {
-            setIsDialogOpen(open);
-            if (!open) resetForm();
-          }}>
-            <DialogTrigger asChild>
-              <Button disabled={buildings.length === 0}>
-                <Plus className="mr-2 h-4 w-4" />
-                New Request
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-lg">
-              <form onSubmit={handleSubmit}>
-                <DialogHeader>
-                  <DialogTitle>New Maintenance Request</DialogTitle>
-                  <DialogDescription>
-                    Submit a new request for maintenance or repairs.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="building">Building *</Label>
-                      <Select value={formBuildingId} onValueChange={setFormBuildingId}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select building" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {buildings.map((building) => (
-                            <SelectItem key={building.id} value={building.id}>
-                              {building.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="unit">Unit *</Label>
-                      <Select 
-                        value={formUnitId} 
-                        onValueChange={setFormUnitId}
-                        disabled={!formBuildingId}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder={formBuildingId ? "Select unit" : "Select building first"} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {filteredUnits.map((unit) => (
-                            <SelectItem key={unit.id} value={unit.id}>
-                              Unit {unit.unit_number}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="title">Request Title *</Label>
-                    <Input
-                      id="title"
-                      value={formTitle}
-                      onChange={(e) => setFormTitle(e.target.value)}
-                      placeholder="Brief description of the issue"
-                      required
-                      maxLength={100}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Detailed Description *</Label>
-                    <Textarea
-                      id="description"
-                      value={formDescription}
-                      onChange={(e) => setFormDescription(e.target.value)}
-                      placeholder="Please describe the issue in detail..."
-                      rows={4}
-                      required
-                      maxLength={1000}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="category">Category *</Label>
-                      <Select value={formCategory} onValueChange={(v) => setFormCategory(v as MaintenanceCategory)}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(categoryConfig).map(([value, config]) => (
-                            <SelectItem key={value} value={value}>
-                              {config.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="priority">Priority *</Label>
-                      <Select value={formPriority} onValueChange={setFormPriority}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(priorityConfig).map(([value, config]) => (
-                            <SelectItem key={value} value={value}>
-                              {config.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={isSubmitting || !formUnitId || !formTitle.trim() || !formDescription.trim()}>
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Submitting...
-                      </>
-                    ) : (
-                      'Submit Request'
-                    )}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <Button disabled={buildings.length === 0} onClick={() => setIsDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Request
+          </Button>
+          <MaintenanceRequestWizard
+            open={isDialogOpen}
+            onOpenChange={setIsDialogOpen}
+            buildings={buildings}
+            units={units}
+            onSuccess={fetchData}
+          />
         </div>
 
         {/* Filters Panel */}
