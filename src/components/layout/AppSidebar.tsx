@@ -16,6 +16,7 @@ import {
   Vote,
   FolderOpen,
   Calculator,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
@@ -60,6 +61,7 @@ const adminManagementNavItems = [
 const adminCommunicationNavItems = [
   { icon: Megaphone, label: 'Announcements', href: '/announcements' },
   { icon: BarChart3, label: 'Reports', href: '/reports' },
+  { icon: Sparkles, label: 'AI Assistant', href: '/assistant' },
 ];
 
 // Resident navigation - Limited self-service access
@@ -79,6 +81,7 @@ const residentCommunityNavItems = [
   { icon: Megaphone, label: 'Announcements', href: '/announcements' },
   { icon: Vote, label: 'Polls', href: '/polls' },
   { icon: Users, label: 'Neighbors', href: '/residents' },
+  { icon: Sparkles, label: 'AI Assistant', href: '/assistant' },
 ];
 
 export function AppSidebar() {

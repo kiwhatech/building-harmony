@@ -2,3 +2,6 @@ project_id = "wmbmmnvrzenstkhcsyxc"
 
 [functions.send-maintenance-notification]
 verify_jwt = false
+
+[functions.building-assistant]
+verify_jwt = false
