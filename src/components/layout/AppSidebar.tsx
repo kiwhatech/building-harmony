@@ -6,7 +6,6 @@ import {
   Users,
   DollarSign,
   Wrench,
-  FileText,
   BarChart3,
   Megaphone,
   Settings,
