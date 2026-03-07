@@ -11,9 +11,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 import {
   ArrowLeft, Save, Send, CheckCircle, XCircle, ArrowRightCircle, Trash2,
-  FileText, Wrench, Loader2, CalendarCheck, PlayCircle,
+  FileText, Wrench, Loader2, CalendarCheck, PlayCircle, CalendarIcon, Clock,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -47,6 +50,9 @@ export default function RequestDetail() {
     estimated_amount: '',
     provider: '',
     internal_notes: '',
+    scheduled_date: null as Date | null,
+    scheduled_hour: '09',
+    scheduled_minute: '00',
   });
 
   const isOwner = request?.created_by === user?.id;
@@ -89,6 +95,7 @@ export default function RequestDetail() {
 
     const d = data as any;
     setRequest(d);
+    const scheduledDate = d.scheduled_date ? new Date(d.scheduled_date) : null;
     setForm({
       building_id: d.building_id,
       unit_id: d.unit_id,
@@ -100,6 +107,9 @@ export default function RequestDetail() {
       estimated_amount: d.estimated_amount?.toString() || '',
       provider: d.provider || '',
       internal_notes: d.internal_notes || '',
+      scheduled_date: scheduledDate,
+      scheduled_hour: scheduledDate ? format(scheduledDate, 'HH') : '09',
+      scheduled_minute: scheduledDate ? format(scheduledDate, 'mm') : '00',
     });
     setLoading(false);
   };
