@@ -815,6 +815,7 @@ export type Database = {
           priority: number
           provider: string | null
           request_type: Database["public"]["Enums"]["unified_request_type"]
+          scheduled_date: string | null
           status: Database["public"]["Enums"]["unified_request_status"]
           title: string
           unit_id: string
@@ -835,6 +836,7 @@ export type Database = {
           priority?: number
           provider?: string | null
           request_type?: Database["public"]["Enums"]["unified_request_type"]
+          scheduled_date?: string | null
           status?: Database["public"]["Enums"]["unified_request_status"]
           title: string
           unit_id: string
@@ -855,6 +857,7 @@ export type Database = {
           priority?: number
           provider?: string | null
           request_type?: Database["public"]["Enums"]["unified_request_type"]
+          scheduled_date?: string | null
           status?: Database["public"]["Enums"]["unified_request_status"]
           title?: string
           unit_id?: string
