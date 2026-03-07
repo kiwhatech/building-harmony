@@ -74,6 +74,7 @@ const residentMainNavItems = [
 
 const residentServicesNavItems = [
   { icon: Wrench, label: 'Requests', href: '/requests' },
+  { icon: FileText, label: 'Estimates', href: '/estimates' },
   { icon: DollarSign, label: 'Payments', href: '/fees' },
 ];
 

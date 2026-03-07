@@ -296,6 +296,82 @@ export type Database = {
           },
         ]
       }
+      estimate_requests: {
+        Row: {
+          building_id: string
+          category: Database["public"]["Enums"]["estimate_category"]
+          created_at: string
+          created_by: string
+          description: string | null
+          estimated_amount: number | null
+          id: string
+          internal_notes: string | null
+          linked_request_id: string | null
+          priority: Database["public"]["Enums"]["estimate_priority"]
+          provider: string | null
+          status: Database["public"]["Enums"]["estimate_request_status"]
+          title: string
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          building_id: string
+          category?: Database["public"]["Enums"]["estimate_category"]
+          created_at?: string
+          created_by: string
+          description?: string | null
+          estimated_amount?: number | null
+          id?: string
+          internal_notes?: string | null
+          linked_request_id?: string | null
+          priority?: Database["public"]["Enums"]["estimate_priority"]
+          provider?: string | null
+          status?: Database["public"]["Enums"]["estimate_request_status"]
+          title: string
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          building_id?: string
+          category?: Database["public"]["Enums"]["estimate_category"]
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          estimated_amount?: number | null
+          id?: string
+          internal_notes?: string | null
+          linked_request_id?: string | null
+          priority?: Database["public"]["Enums"]["estimate_priority"]
+          provider?: string | null
+          status?: Database["public"]["Enums"]["estimate_request_status"]
+          title?: string
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "estimate_requests_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "estimate_requests_linked_request_id_fkey"
+            columns: ["linked_request_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "estimate_requests_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       estimates: {
         Row: {
           amount: number
@@ -831,6 +907,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      convert_estimate_to_request: {
+        Args: { _estimate_id: string }
+        Returns: string
+      }
       get_building_from_unit: { Args: { _unit_id: string }; Returns: string }
       has_role: {
         Args: {
@@ -856,6 +936,15 @@ export type Database = {
       app_role: "admin" | "resident" | "provider"
       document_category: "building" | "insurance" | "unit"
       document_status: "active" | "expired" | "expiring_soon" | "archived"
+      estimate_category: "electrical" | "plumbing" | "cleaning" | "other"
+      estimate_priority: "low" | "normal" | "urgent"
+      estimate_request_status:
+        | "draft"
+        | "submitted"
+        | "under_review"
+        | "approved"
+        | "rejected"
+        | "converted"
       estimate_status: "pending" | "approved" | "rejected"
       maintenance_category:
         | "plumbing"
@@ -1007,6 +1096,16 @@ export const Constants = {
       app_role: ["admin", "resident", "provider"],
       document_category: ["building", "insurance", "unit"],
       document_status: ["active", "expired", "expiring_soon", "archived"],
+      estimate_category: ["electrical", "plumbing", "cleaning", "other"],
+      estimate_priority: ["low", "normal", "urgent"],
+      estimate_request_status: [
+        "draft",
+        "submitted",
+        "under_review",
+        "approved",
+        "rejected",
+        "converted",
+      ],
       estimate_status: ["pending", "approved", "rejected"],
       maintenance_category: [
         "plumbing",
