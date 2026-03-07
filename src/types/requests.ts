@@ -6,7 +6,6 @@ export type UnifiedRequestStatus =
   | 'quotation_sent'
   | 'approved'
   | 'scheduled'
-  | 'in_progress'
   | 'completed'
   | 'rejected';
 
@@ -46,7 +45,6 @@ export const REQUEST_STATUSES: { value: UnifiedRequestStatus; label: string }[] 
   { value: 'quotation_sent', label: 'Quotation Sent' },
   { value: 'approved', label: 'Approved' },
   { value: 'scheduled', label: 'Scheduled' },
-  { value: 'in_progress', label: 'In Progress' },
   { value: 'completed', label: 'Completed' },
   { value: 'rejected', label: 'Rejected' },
 ];

@@ -583,14 +583,9 @@ export default function RequestDetail() {
                 )}
 
                 {request.status === 'approved' && (
-                  <>
-                    <Button variant="outline" onClick={() => handleStatusChange('scheduled')}>
-                      <CalendarCheck className="mr-2 h-4 w-4" /> Schedule
-                    </Button>
-                    <Button onClick={() => handleStatusChange('in_progress')}>
-                      <PlayCircle className="mr-2 h-4 w-4" /> Start Work
-                    </Button>
-                  </>
+                  <Button variant="outline" onClick={() => handleStatusChange('scheduled')}>
+                    <CalendarCheck className="mr-2 h-4 w-4" /> Schedule
+                  </Button>
                 )}
 
                 {request.status === 'scheduled' && (
