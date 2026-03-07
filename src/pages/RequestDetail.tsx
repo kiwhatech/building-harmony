@@ -262,6 +262,12 @@ export default function RequestDetail() {
                 <span className="text-sm text-muted-foreground">
                   Created {format(new Date(request.created_at), 'MMM d, yyyy')}
                 </span>
+                {request.scheduled_date && (
+                  <span className="text-sm text-muted-foreground flex items-center gap-1">
+                    <CalendarCheck className="h-3.5 w-3.5" />
+                    Scheduled: {format(new Date(request.scheduled_date), 'MMM d, yyyy')} at {format(new Date(request.scheduled_date), 'HH:mm')}
+                  </span>
+                )}
               </div>
             )}
           </div>
