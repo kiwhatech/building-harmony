@@ -385,28 +385,21 @@ export default function RequestDetail() {
               </div>
             </div>
 
-            {/* Cost info for quotation type */}
-            {(form.request_type === 'quotation' || request?.request_type === 'quotation') && (
+            {/* Cost info (read-only for non-admins) */}
+            {!isNew && (form.estimated_amount || form.provider) && !isAdmin && (
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Estimated Amount</Label>
-                  <Input
-                    type="number"
-                    value={form.estimated_amount}
-                    onChange={(e) => updateField('estimated_amount', e.target.value)}
-                    disabled={!canEdit && !canAdminEdit}
-                    placeholder="0.00"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Provider / Vendor</Label>
-                  <Input
-                    value={form.provider}
-                    onChange={(e) => updateField('provider', e.target.value)}
-                    disabled={!canEdit && !canAdminEdit}
-                    placeholder="Optional"
-                  />
-                </div>
+                {form.estimated_amount && (
+                  <div className="space-y-2">
+                    <Label>Estimated Amount</Label>
+                    <Input type="number" value={form.estimated_amount} disabled placeholder="0.00" />
+                  </div>
+                )}
+                {form.provider && (
+                  <div className="space-y-2">
+                    <Label>Provider / Vendor</Label>
+                    <Input value={form.provider} disabled />
+                  </div>
+                )}
               </div>
             )}
 
