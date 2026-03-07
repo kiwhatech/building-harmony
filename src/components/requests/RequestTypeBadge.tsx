@@ -16,7 +16,7 @@ export function RequestTypeBadge({ type }: Props) {
     );
   }
   return (
-    <Badge variant="outline" className="bg-accent/10 text-accent-foreground border-accent/30">
+    <Badge variant="outline" className="bg-warning/15 text-warning border-warning/40">
       <Wrench className="mr-1 h-3 w-3" />
       Intervention
     </Badge>
