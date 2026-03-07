@@ -165,13 +165,25 @@ export default function RequestDetail() {
     setSaving(false);
   };
 
+  const buildScheduledDatetime = (): string | null => {
+    if (!form.scheduled_date) return null;
+    const d = new Date(form.scheduled_date);
+    d.setHours(parseInt(form.scheduled_hour), parseInt(form.scheduled_minute), 0, 0);
+    return d.toISOString();
+  };
+
   const handleStatusChange = async (newStatus: UnifiedRequestStatus) => {
+    if (newStatus === 'scheduled' && !form.scheduled_date) {
+      toast.error('Please select a scheduled date and time first');
+      return;
+    }
     const updatePayload: any = { status: newStatus };
     if (isAdmin) {
       updatePayload.internal_notes = form.internal_notes.trim() || null;
       updatePayload.estimated_amount = form.estimated_amount ? parseFloat(form.estimated_amount) : null;
       updatePayload.provider = form.provider.trim() || null;
     }
+    if (newStatus === 'scheduled') updatePayload.scheduled_date = buildScheduledDatetime();
     if (newStatus === 'completed') updatePayload.completed_at = new Date().toISOString();
 
     const { error } = await supabase
@@ -467,6 +479,68 @@ export default function RequestDetail() {
                 </div>
               </div>
 
+              {/* Schedule date & time picker */}
+              {['approved', 'scheduled'].includes(request.status) && (
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <CalendarCheck className="h-4 w-4" /> Schedule Intervention
+                  </Label>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="sm:col-span-1">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !form.scheduled_date && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {form.scheduled_date ? format(form.scheduled_date, 'PPP') : 'Pick a date'}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={form.scheduled_date || undefined}
+                            onSelect={(d) => updateField('scheduled_date', d || null)}
+                            disabled={(date) => date < new Date()}
+                            initialFocus
+                            className={cn("p-3 pointer-events-auto")}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <Select value={form.scheduled_hour} onValueChange={(v) => updateField('scheduled_hour', v)}>
+                        <SelectTrigger className="w-[80px]"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map(h => (
+                            <SelectItem key={h} value={h}>{h}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <span className="text-muted-foreground font-bold">:</span>
+                      <Select value={form.scheduled_minute} onValueChange={(v) => updateField('scheduled_minute', v)}>
+                        <SelectTrigger className="w-[80px]"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {['00', '15', '30', '45'].map(m => (
+                            <SelectItem key={m} value={m}>{m}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  {request.scheduled_date && (
+                    <p className="text-sm text-muted-foreground">
+                      Currently scheduled: {format(new Date(request.scheduled_date), 'PPP')} at {format(new Date(request.scheduled_date), 'HH:mm')}
+                    </p>
+                  )}
+                </div>
+              )}
+
               <Separator />
 
               {/* Status action buttons */}
@@ -536,6 +610,7 @@ export default function RequestDetail() {
                     internal_notes: form.internal_notes.trim() || null,
                     estimated_amount: form.estimated_amount ? parseFloat(form.estimated_amount) : null,
                     provider: form.provider.trim() || null,
+                    scheduled_date: buildScheduledDatetime(),
                   };
                   supabase.from('unified_requests' as any).update(payload).eq('id', id).then(({ error }: any) => {
                     if (error) toast.error('Failed to save');
