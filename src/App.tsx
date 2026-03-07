@@ -11,15 +11,14 @@ import Dashboard from "./pages/Dashboard";
 import Buildings from "./pages/Buildings";
 import Units from "./pages/Units";
 import Residents from "./pages/Residents";
-import Maintenance from "./pages/Maintenance";
 import Fees from "./pages/Fees";
 import Settings from "./pages/Settings";
 import Announcements from "./pages/Announcements";
 import Documents from "./pages/Documents";
 import CondoFees from "./pages/CondoFees";
 import Assistant from "./pages/Assistant";
-import Estimates from "./pages/Estimates";
-import EstimateDetail from "./pages/EstimateDetail";
+import Requests from "./pages/Requests";
+import RequestDetail from "./pages/RequestDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,13 +38,13 @@ const App = () => (
             <Route path="/buildings" element={<Buildings />} />
             <Route path="/units" element={<Units />} />
             <Route path="/residents" element={<Residents />} />
-            <Route path="/maintenance" element={<Maintenance />} />
-            <Route path="/requests" element={<Maintenance />} />
+            <Route path="/requests" element={<Requests />} />
+            <Route path="/requests/new" element={<RequestDetail />} />
+            <Route path="/requests/:id" element={<RequestDetail />} />
+            <Route path="/maintenance" element={<Navigate to="/requests" replace />} />
+            <Route path="/estimates" element={<Navigate to="/requests" replace />} />
             <Route path="/fees" element={<Fees />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/estimates" element={<Estimates />} />
-            <Route path="/estimates/new" element={<EstimateDetail />} />
-            <Route path="/estimates/:id" element={<EstimateDetail />} />
             <Route path="/announcements" element={<Announcements />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/condo-fees" element={<CondoFees />} />

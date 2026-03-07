@@ -54,8 +54,7 @@ const adminMainNavItems = [
 const adminManagementNavItems = [
   { icon: DollarSign, label: 'Fees', href: '/fees' },
   { icon: Calculator, label: 'Fees Configuration', href: '/condo-fees' },
-  { icon: Wrench, label: 'Maintenance', href: '/maintenance' },
-  { icon: FileText, label: 'Estimates', href: '/estimates' },
+  { icon: Wrench, label: 'Requests', href: '/requests' },
 ];
 
 const adminCommunicationNavItems = [
@@ -74,7 +73,6 @@ const residentMainNavItems = [
 
 const residentServicesNavItems = [
   { icon: Wrench, label: 'Requests', href: '/requests' },
-  { icon: FileText, label: 'Estimates', href: '/estimates' },
   { icon: DollarSign, label: 'Payments', href: '/fees' },
 ];
 
