@@ -638,6 +638,57 @@ export default function RequestDetail() {
             </CardContent>
           </Card>
         )}
+
+        {/* Resident Approval Actions */}
+        {!isAdmin && isOwner && request && ['quotation_sent', 'scheduled'].includes(request.status) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Approval Required</CardTitle>
+              <CardDescription>
+                {request.status === 'quotation_sent'
+                  ? 'The administrator has sent you a quotation. Please review the estimated amount and approve or reject.'
+                  : 'An intervention has been scheduled. Please review the details and confirm or reject.'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Summary of what the resident is approving */}
+              <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
+                {form.estimated_amount && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Estimated Amount</span>
+                    <span className="font-semibold">€ {parseFloat(form.estimated_amount).toFixed(2)}</span>
+                  </div>
+                )}
+                {form.provider && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Provider</span>
+                    <span className="font-medium">{form.provider}</span>
+                  </div>
+                )}
+                {request.scheduled_date && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Scheduled Date</span>
+                    <span className="font-medium">
+                      {format(new Date(request.scheduled_date), 'PPP')} at {format(new Date(request.scheduled_date), 'HH:mm')}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleStatusChange('approved')}
+                  className="bg-success hover:bg-success/90 text-success-foreground"
+                >
+                  <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                </Button>
+                <Button variant="destructive" onClick={() => handleStatusChange('rejected')}>
+                  <XCircle className="mr-2 h-4 w-4" /> Reject
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </AppLayout>
   );
