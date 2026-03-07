@@ -1056,6 +1056,11 @@ export type Database = {
         | "in_progress"
         | "completed"
         | "rejected"
+        | "draft"
+        | "submitted"
+        | "quoted"
+        | "waiting_approval"
+        | "intervention"
       unified_request_type: "quotation" | "intervention"
     }
     CompositeTypes: {
@@ -1230,6 +1235,11 @@ export const Constants = {
         "in_progress",
         "completed",
         "rejected",
+        "draft",
+        "submitted",
+        "quoted",
+        "waiting_approval",
+        "intervention",
       ],
       unified_request_type: ["quotation", "intervention"],
     },
