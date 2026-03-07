@@ -1,11 +1,12 @@
 export type UnifiedRequestType = 'quotation' | 'intervention';
 
 export type UnifiedRequestStatus =
-  | 'new'
+  | 'draft'
+  | 'submitted'
   | 'in_review'
-  | 'quotation_sent'
-  | 'approved'
-  | 'scheduled'
+  | 'quoted'
+  | 'waiting_approval'
+  | 'intervention'
   | 'completed'
   | 'rejected';
 
@@ -28,6 +29,7 @@ export interface UnifiedRequest {
   internal_notes: string | null;
   attachment_urls: string[];
   completed_at: string | null;
+  scheduled_date: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -40,11 +42,12 @@ export interface UnifiedRequestWithRelations extends UnifiedRequest {
 }
 
 export const REQUEST_STATUSES: { value: UnifiedRequestStatus; label: string }[] = [
-  { value: 'new', label: 'New' },
+  { value: 'draft', label: 'Draft' },
+  { value: 'submitted', label: 'Submitted' },
   { value: 'in_review', label: 'In Review' },
-  { value: 'quotation_sent', label: 'Quotation Sent' },
-  { value: 'approved', label: 'Approved' },
-  { value: 'scheduled', label: 'Scheduled' },
+  { value: 'quoted', label: 'Quoted' },
+  { value: 'waiting_approval', label: 'Waiting Approval' },
+  { value: 'intervention', label: 'Intervention' },
   { value: 'completed', label: 'Completed' },
   { value: 'rejected', label: 'Rejected' },
 ];
