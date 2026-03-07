@@ -16,7 +16,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import {
   ArrowLeft, Save, Send, CheckCircle, XCircle, ArrowRightCircle, Trash2,
-  FileText, Wrench, Loader2, CalendarCheck, CalendarIcon, Clock,
+  FileText, Wrench, Loader2, CalendarCheck, CalendarIcon, Clock, Search,
+  Hourglass, PenLine, MessageSquare,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -56,8 +57,8 @@ export default function RequestDetail() {
   });
 
   const isOwner = request?.created_by === user?.id;
-  const isNewStatus = !request || request.status === 'new';
-  const canEdit = isNew || (isOwner && isNewStatus);
+  const isDraft = !request || request.status === 'draft';
+  const canEdit = isNew || (isOwner && isDraft);
   const canAdminEdit = isAdmin && !!request;
 
   useEffect(() => {
@@ -131,12 +132,12 @@ export default function RequestDetail() {
       priority: form.priority,
       estimated_amount: form.estimated_amount ? parseFloat(form.estimated_amount) : null,
       provider: form.provider.trim() || null,
-      ...(submit ? { status: 'new' } : {}),
+      ...(submit ? { status: 'submitted' } : {}),
     };
 
     if (isNew) {
       payload.created_by = user?.id;
-      payload.status = 'new';
+      payload.status = submit ? 'submitted' : 'draft';
       const { data, error } = await supabase
         .from('unified_requests' as any)
         .insert(payload)
@@ -146,7 +147,7 @@ export default function RequestDetail() {
         toast.error('Failed to create request');
         console.error(error);
       } else {
-        toast.success('Request created!');
+        toast.success(submit ? 'Request submitted!' : 'Draft saved!');
         navigate(`/requests/${(data as any).id}`);
       }
     } else {
@@ -158,7 +159,7 @@ export default function RequestDetail() {
         toast.error('Failed to update');
         console.error(error);
       } else {
-        toast.success('Request updated');
+        toast.success(submit ? 'Request submitted!' : 'Request updated');
         fetchRequest();
       }
     }
@@ -173,7 +174,7 @@ export default function RequestDetail() {
   };
 
   const handleStatusChange = async (newStatus: UnifiedRequestStatus) => {
-    if (newStatus === 'scheduled' && !form.scheduled_date) {
+    if (newStatus === 'intervention' && !form.scheduled_date) {
       toast.error('Please select a scheduled date and time first');
       return;
     }
@@ -183,7 +184,7 @@ export default function RequestDetail() {
       updatePayload.estimated_amount = form.estimated_amount ? parseFloat(form.estimated_amount) : null;
       updatePayload.provider = form.provider.trim() || null;
     }
-    if (newStatus === 'scheduled') updatePayload.scheduled_date = buildScheduledDatetime();
+    if (newStatus === 'intervention') updatePayload.scheduled_date = buildScheduledDatetime();
     if (newStatus === 'completed') updatePayload.completed_at = new Date().toISOString();
 
     const { error } = await supabase
@@ -195,17 +196,22 @@ export default function RequestDetail() {
       toast.error('Failed to update status');
       console.error(error);
     } else {
-      toast.success(`Status changed to ${newStatus.replace('_', ' ')}`);
+      toast.success(`Status changed to ${newStatus.replace(/_/g, ' ')}`);
       fetchRequest();
     }
   };
 
   const handleConvertToIntervention = async () => {
+    if (!form.scheduled_date) {
+      toast.error('Please select a scheduled date and time first');
+      return;
+    }
     const { error } = await supabase
       .from('unified_requests' as any)
       .update({
         request_type: 'intervention',
-        status: 'approved',
+        status: 'intervention',
+        scheduled_date: buildScheduledDatetime(),
         internal_notes: form.internal_notes.trim() || null,
         estimated_amount: form.estimated_amount ? parseFloat(form.estimated_amount) : null,
         provider: form.provider.trim() || null,
@@ -216,7 +222,7 @@ export default function RequestDetail() {
       toast.error('Conversion failed');
       console.error(error);
     } else {
-      toast.success('Quotation converted to intervention!');
+      toast.success('Converted to intervention!');
       fetchRequest();
     }
   };
@@ -436,21 +442,26 @@ export default function RequestDetail() {
               </div>
             )}
 
-            {/* Save actions */}
+            {/* Save actions for draft */}
             {canEdit && (
               <div className="flex gap-2 pt-2">
                 <Button onClick={() => handleSave(false)} disabled={saving} variant="outline">
-                  <Save className="mr-2 h-4 w-4" /> Save
+                  <Save className="mr-2 h-4 w-4" /> Save Draft
                 </Button>
                 <Button onClick={() => handleSave(true)} disabled={saving}>
                   <Send className="mr-2 h-4 w-4" /> Submit Request
                 </Button>
+                {!isNew && (
+                  <Button variant="ghost" className="text-destructive ml-auto" onClick={handleDelete}>
+                    <Trash2 className="mr-2 h-4 w-4" /> Delete
+                  </Button>
+                )}
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Admin Actions */}
+        {/* ══════ ADMIN ACTIONS ══════ */}
         {isAdmin && request && (
           <Card>
             <CardHeader>
@@ -469,7 +480,7 @@ export default function RequestDetail() {
                 />
               </div>
 
-              {/* Provider & amount (editable by admin for interventions too) */}
+              {/* Provider & amount */}
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Estimated Amount</Label>
@@ -490,8 +501,8 @@ export default function RequestDetail() {
                 </div>
               </div>
 
-              {/* Schedule date & time picker */}
-              {['approved', 'scheduled'].includes(request.status) && (
+              {/* Schedule date & time picker — shown when preparing intervention */}
+              {['in_review', 'quoted', 'waiting_approval', 'intervention'].includes(request.status) && (
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
                     <CalendarCheck className="h-4 w-4" /> Schedule Intervention
@@ -554,41 +565,53 @@ export default function RequestDetail() {
 
               <Separator />
 
-              {/* Status action buttons */}
+              {/* ── Status action buttons per current status ── */}
               <div className="flex flex-wrap gap-2">
-                {request.status === 'new' && (
+
+                {/* SUBMITTED → In Review */}
+                {request.status === 'submitted' && (
                   <Button variant="outline" onClick={() => handleStatusChange('in_review')}>
-                    Mark In Review
+                    <Search className="mr-2 h-4 w-4" /> Mark In Review
                   </Button>
                 )}
 
-                {request.status === 'in_review' && request.request_type === 'quotation' && (
-                  <Button variant="outline" onClick={() => handleStatusChange('quotation_sent')}>
-                    <FileText className="mr-2 h-4 w-4" /> Quotation Sent
-                  </Button>
-                )}
-
-                {['new', 'in_review', 'quotation_sent'].includes(request.status) && (
+                {/* IN REVIEW → Quoted (prepare quotation) */}
+                {request.status === 'in_review' && (
                   <>
-                    <Button
-                      onClick={() => handleStatusChange('approved')}
-                      className="bg-success hover:bg-success/90 text-success-foreground"
-                    >
-                      <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                    <Button variant="outline" onClick={() => handleStatusChange('quoted')}>
+                      <FileText className="mr-2 h-4 w-4" /> Send Quotation
                     </Button>
-                    <Button variant="destructive" onClick={() => handleStatusChange('rejected')}>
-                      <XCircle className="mr-2 h-4 w-4" /> Reject
+                    {/* Direct to intervention (no quote needed) */}
+                    <Button onClick={handleConvertToIntervention}>
+                      <ArrowRightCircle className="mr-2 h-4 w-4" /> Convert to Intervention
                     </Button>
                   </>
                 )}
 
-                {request.status === 'approved' && (
-                  <Button variant="outline" onClick={() => handleStatusChange('scheduled')}>
-                    <CalendarCheck className="mr-2 h-4 w-4" /> Schedule
+                {/* QUOTED → Waiting Approval (if admin needs to escalate) */}
+                {request.status === 'quoted' && (
+                  <Button variant="outline" onClick={() => handleStatusChange('waiting_approval')}>
+                    <Hourglass className="mr-2 h-4 w-4" /> Send for Approval
                   </Button>
                 )}
 
-                {request.status === 'scheduled' && (
+                {/* WAITING APPROVAL → admin can also convert or send back */}
+                {request.status === 'waiting_approval' && (
+                  <>
+                    <Button onClick={handleConvertToIntervention}>
+                      <ArrowRightCircle className="mr-2 h-4 w-4" /> Convert to Intervention
+                    </Button>
+                    <Button variant="outline" onClick={() => handleStatusChange('quoted')}>
+                      <FileText className="mr-2 h-4 w-4" /> Back to Quoted
+                    </Button>
+                    <Button variant="outline" onClick={() => handleStatusChange('in_review')}>
+                      <Search className="mr-2 h-4 w-4" /> Back to Review
+                    </Button>
+                  </>
+                )}
+
+                {/* INTERVENTION → Completed */}
+                {request.status === 'intervention' && (
                   <Button
                     onClick={() => handleStatusChange('completed')}
                     className="bg-success hover:bg-success/90 text-success-foreground"
@@ -597,28 +620,30 @@ export default function RequestDetail() {
                   </Button>
                 )}
 
-                {/* Convert quotation → intervention */}
-                {request.request_type === 'quotation' && request.status === 'approved' && (
-                  <Button onClick={handleConvertToIntervention} variant="default">
-                    <ArrowRightCircle className="mr-2 h-4 w-4" /> Convert to Intervention
+                {/* Reject from any active status */}
+                {['submitted', 'in_review', 'quoted', 'waiting_approval', 'intervention'].includes(request.status) && (
+                  <Button variant="destructive" onClick={() => handleStatusChange('rejected')}>
+                    <XCircle className="mr-2 h-4 w-4" /> Reject
                   </Button>
                 )}
 
                 {/* Save admin changes without status change */}
-                <Button variant="outline" onClick={() => {
-                  const payload: any = {
-                    internal_notes: form.internal_notes.trim() || null,
-                    estimated_amount: form.estimated_amount ? parseFloat(form.estimated_amount) : null,
-                    provider: form.provider.trim() || null,
-                    scheduled_date: buildScheduledDatetime(),
-                  };
-                  supabase.from('unified_requests' as any).update(payload).eq('id', id).then(({ error }: any) => {
-                    if (error) toast.error('Failed to save');
-                    else { toast.success('Saved'); fetchRequest(); }
-                  });
-                }}>
-                  <Save className="mr-2 h-4 w-4" /> Save Changes
-                </Button>
+                {!['completed', 'rejected'].includes(request.status) && (
+                  <Button variant="outline" onClick={() => {
+                    const payload: any = {
+                      internal_notes: form.internal_notes.trim() || null,
+                      estimated_amount: form.estimated_amount ? parseFloat(form.estimated_amount) : null,
+                      provider: form.provider.trim() || null,
+                      scheduled_date: buildScheduledDatetime(),
+                    };
+                    supabase.from('unified_requests' as any).update(payload).eq('id', id).then(({ error }: any) => {
+                      if (error) toast.error('Failed to save');
+                      else { toast.success('Saved'); fetchRequest(); }
+                    });
+                  }}>
+                    <Save className="mr-2 h-4 w-4" /> Save Changes
+                  </Button>
+                )}
 
                 <Button variant="ghost" className="text-destructive ml-auto" onClick={handleDelete}>
                   <Trash2 className="mr-2 h-4 w-4" /> Delete
@@ -628,19 +653,18 @@ export default function RequestDetail() {
           </Card>
         )}
 
-        {/* Resident Approval Actions */}
-        {!isAdmin && isOwner && request && ['quotation_sent', 'scheduled'].includes(request.status) && (
+        {/* ══════ RESIDENT APPROVAL (for quoted & waiting_approval) ══════ */}
+        {!isAdmin && isOwner && request && ['quoted', 'waiting_approval'].includes(request.status) && (
           <Card>
             <CardHeader>
               <CardTitle>Your Approval Required</CardTitle>
               <CardDescription>
-                {request.status === 'quotation_sent'
-                  ? 'The administrator has sent you a quotation. Please review the estimated amount and approve or reject.'
-                  : 'An intervention has been scheduled. Please review the details and confirm or reject.'}
+                {request.status === 'quoted'
+                  ? 'A quotation has been prepared. Please review the estimated costs and approve or reject.'
+                  : 'This request is awaiting your final approval before work can begin.'}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Summary of what the resident is approving */}
               <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
                 {form.estimated_amount && (
                   <div className="flex justify-between">
@@ -666,7 +690,7 @@ export default function RequestDetail() {
 
               <div className="flex gap-2">
                 <Button
-                  onClick={() => handleStatusChange('approved')}
+                  onClick={() => handleStatusChange('waiting_approval')}
                   className="bg-success hover:bg-success/90 text-success-foreground"
                 >
                   <CheckCircle className="mr-2 h-4 w-4" /> Approve
@@ -676,6 +700,28 @@ export default function RequestDetail() {
                 </Button>
               </div>
             </CardContent>
+          </Card>
+        )}
+
+        {/* Completed / Rejected read-only info */}
+        {request && ['completed', 'rejected'].includes(request.status) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>{request.status === 'completed' ? '✅ Request Completed' : '❌ Request Rejected'}</CardTitle>
+              <CardDescription>
+                {request.status === 'completed' && request.completed_at
+                  ? `Completed on ${format(new Date(request.completed_at), 'PPP')}`
+                  : 'This request has been closed.'}
+              </CardDescription>
+            </CardHeader>
+            {request.estimated_amount && (
+              <CardContent>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Final Amount</span>
+                  <span className="font-semibold">€ {request.estimated_amount.toFixed(2)}</span>
+                </div>
+              </CardContent>
+            )}
           </Card>
         )}
       </div>
