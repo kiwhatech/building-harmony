@@ -16,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import {
   ArrowLeft, Save, Send, CheckCircle, XCircle, ArrowRightCircle, Trash2,
-  FileText, Wrench, Loader2, CalendarCheck, PlayCircle, CalendarIcon, Clock,
+  FileText, Wrench, Loader2, CalendarCheck, CalendarIcon, Clock,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -583,14 +583,9 @@ export default function RequestDetail() {
                 )}
 
                 {request.status === 'approved' && (
-                  <>
-                    <Button variant="outline" onClick={() => handleStatusChange('scheduled')}>
-                      <CalendarCheck className="mr-2 h-4 w-4" /> Schedule
-                    </Button>
-                    <Button onClick={() => handleStatusChange('in_progress')}>
-                      <PlayCircle className="mr-2 h-4 w-4" /> Start Work
-                    </Button>
-                  </>
+                  <Button variant="outline" onClick={() => handleStatusChange('scheduled')}>
+                    <CalendarCheck className="mr-2 h-4 w-4" /> Schedule
+                  </Button>
                 )}
 
                 {request.status === 'scheduled' && (
