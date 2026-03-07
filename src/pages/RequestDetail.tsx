@@ -414,20 +414,25 @@ export default function RequestDetail() {
             </div>
 
             {/* Cost info (read-only for non-admins) */}
-            {!isNew && (form.estimated_amount || form.provider) && !isAdmin && (
+            {!isNew && !isAdmin && (
               <div className="grid gap-4 sm:grid-cols-2">
-                {form.estimated_amount && (
-                  <div className="space-y-2">
-                    <Label>Estimated Amount</Label>
-                    <Input type="number" value={form.estimated_amount} disabled placeholder="0.00" />
-                  </div>
-                )}
-                {form.provider && (
-                  <div className="space-y-2">
-                    <Label>Provider / Vendor</Label>
-                    <Input value={form.provider} disabled />
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <Label>Estimated Amount</Label>
+                  <Input
+                    type="text"
+                    value={form.estimated_amount ? `€ ${parseFloat(form.estimated_amount).toFixed(2)}` : 'Not yet estimated'}
+                    disabled
+                    className={!form.estimated_amount ? 'text-muted-foreground italic' : ''}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Provider / Vendor</Label>
+                  <Input
+                    value={form.provider || 'Not yet assigned'}
+                    disabled
+                    className={!form.provider ? 'text-muted-foreground italic' : ''}
+                  />
+                </div>
               </div>
             )}
 
