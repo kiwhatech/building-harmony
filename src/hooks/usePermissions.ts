@@ -18,7 +18,10 @@ export type Permission =
   | 'canViewAnnouncements'
   | 'canViewDocuments'
   | 'canViewOwnFees'
-  | 'canEditOwnEstimates';
+  | 'canEditOwnEstimates'
+  | 'canManageEstimates'
+  | 'canCreateEstimates'
+  | 'canViewOwnEstimates';
 
 export function usePermissions() {
   const { roles } = useAuth();

@@ -18,6 +18,8 @@ import Announcements from "./pages/Announcements";
 import Documents from "./pages/Documents";
 import CondoFees from "./pages/CondoFees";
 import Assistant from "./pages/Assistant";
+import Estimates from "./pages/Estimates";
+import EstimateDetail from "./pages/EstimateDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,7 +43,9 @@ const App = () => (
             <Route path="/requests" element={<Maintenance />} />
             <Route path="/fees" element={<Fees />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/estimates" element={<Navigate to="/maintenance" replace />} />
+            <Route path="/estimates" element={<Estimates />} />
+            <Route path="/estimates/new" element={<EstimateDetail />} />
+            <Route path="/estimates/:id" element={<EstimateDetail />} />
             <Route path="/announcements" element={<Announcements />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/condo-fees" element={<CondoFees />} />
