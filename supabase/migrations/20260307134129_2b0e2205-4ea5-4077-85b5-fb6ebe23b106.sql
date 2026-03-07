@@ -1,0 +1,1 @@
+ALTER TABLE public.unified_requests ADD COLUMN scheduled_date timestamp with time zone DEFAULT NULL;
