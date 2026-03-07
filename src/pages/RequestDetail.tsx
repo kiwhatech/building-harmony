@@ -594,12 +594,6 @@ export default function RequestDetail() {
                 )}
 
                 {request.status === 'scheduled' && (
-                  <Button onClick={() => handleStatusChange('in_progress')}>
-                    <PlayCircle className="mr-2 h-4 w-4" /> Start Work
-                  </Button>
-                )}
-
-                {request.status === 'in_progress' && (
                   <Button
                     onClick={() => handleStatusChange('completed')}
                     className="bg-success hover:bg-success/90 text-success-foreground"
