@@ -16,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import {
   ArrowLeft, Save, Send, CheckCircle, XCircle, ArrowRightCircle, Trash2,
-  FileText, Wrench, Loader2, CalendarCheck, PlayCircle, CalendarIcon, Clock,
+  FileText, Wrench, Loader2, CalendarCheck, CalendarIcon, Clock,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
