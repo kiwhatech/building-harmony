@@ -799,6 +799,84 @@ export type Database = {
         }
         Relationships: []
       }
+      unified_requests: {
+        Row: {
+          assigned_to: string | null
+          attachment_urls: string[] | null
+          building_id: string
+          category: Database["public"]["Enums"]["maintenance_category"]
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          estimated_amount: number | null
+          id: string
+          internal_notes: string | null
+          priority: number
+          provider: string | null
+          request_type: Database["public"]["Enums"]["unified_request_type"]
+          status: Database["public"]["Enums"]["unified_request_status"]
+          title: string
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          attachment_urls?: string[] | null
+          building_id: string
+          category?: Database["public"]["Enums"]["maintenance_category"]
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          estimated_amount?: number | null
+          id?: string
+          internal_notes?: string | null
+          priority?: number
+          provider?: string | null
+          request_type?: Database["public"]["Enums"]["unified_request_type"]
+          status?: Database["public"]["Enums"]["unified_request_status"]
+          title: string
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          attachment_urls?: string[] | null
+          building_id?: string
+          category?: Database["public"]["Enums"]["maintenance_category"]
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          estimated_amount?: number | null
+          id?: string
+          internal_notes?: string | null
+          priority?: number
+          provider?: string | null
+          request_type?: Database["public"]["Enums"]["unified_request_type"]
+          status?: Database["public"]["Enums"]["unified_request_status"]
+          title?: string
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unified_requests_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unified_requests_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       unit_residents: {
         Row: {
           created_at: string
@@ -966,6 +1044,16 @@ export type Database = {
         | "in_progress"
         | "completed"
         | "paid"
+      unified_request_status:
+        | "new"
+        | "in_review"
+        | "quotation_sent"
+        | "approved"
+        | "scheduled"
+        | "in_progress"
+        | "completed"
+        | "rejected"
+      unified_request_type: "quotation" | "intervention"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1130,6 +1218,17 @@ export const Constants = {
         "completed",
         "paid",
       ],
+      unified_request_status: [
+        "new",
+        "in_review",
+        "quotation_sent",
+        "approved",
+        "scheduled",
+        "in_progress",
+        "completed",
+        "rejected",
+      ],
+      unified_request_type: ["quotation", "intervention"],
     },
   },
 } as const
