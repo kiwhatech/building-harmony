@@ -4,26 +4,16 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import {
-  ArrowLeft, Save, Send, CheckCircle, XCircle, ArrowRightCircle, Trash2,
-  FileText, Wrench, Loader2, CalendarCheck, CalendarIcon, Clock, Search,
-  Hourglass, PenLine, MessageSquare,
-} from 'lucide-react';
+import { ArrowLeft, Loader2, CalendarCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { RequestStatusBadge } from '@/components/requests/RequestStatusBadge';
 import { RequestTypeBadge } from '@/components/requests/RequestTypeBadge';
-import { CATEGORIES, PRIORITIES, REQUEST_TYPES } from '@/types/requests';
+import { RequestForm, type RequestFormData } from '@/components/requests/RequestForm';
+import { AdminActions } from '@/components/requests/AdminActions';
+import { ResidentApproval } from '@/components/requests/ResidentApproval';
+import { RequestTimeline } from '@/components/requests/RequestTimeline';
+import { RequestCompletedCard } from '@/components/requests/RequestCompletedCard';
 import type { UnifiedRequestType, MaintenanceCategory, UnifiedRequestStatus } from '@/types/requests';
 
 export default function RequestDetail() {
@@ -36,11 +26,10 @@ export default function RequestDetail() {
   const [request, setRequest] = useState<any>(null);
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
-
   const [buildings, setBuildings] = useState<{ id: string; name: string }[]>([]);
   const [units, setUnits] = useState<{ id: string; unit_number: string }[]>([]);
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<RequestFormData>({
     building_id: '',
     unit_id: '',
     request_type: 'intervention' as UnifiedRequestType,
@@ -51,7 +40,7 @@ export default function RequestDetail() {
     estimated_amount: '',
     provider: '',
     internal_notes: '',
-    scheduled_date: null as Date | null,
+    scheduled_date: null,
     scheduled_hour: '09',
     scheduled_minute: '00',
   });
@@ -59,7 +48,6 @@ export default function RequestDetail() {
   const isOwner = request?.created_by === user?.id;
   const isDraft = !request || request.status === 'draft';
   const canEdit = isNew || (isOwner && isDraft);
-  const canAdminEdit = isAdmin && !!request;
 
   useEffect(() => {
     fetchBuildings();
@@ -115,6 +103,32 @@ export default function RequestDetail() {
     setLoading(false);
   };
 
+  const updateField = (field: string, value: any) =>
+    setForm((prev) => ({ ...prev, [field]: value }));
+
+  const buildScheduledDatetime = (): string | null => {
+    if (!form.scheduled_date) return null;
+    const d = new Date(form.scheduled_date);
+    d.setHours(parseInt(form.scheduled_hour), parseInt(form.scheduled_minute), 0, 0);
+    return d.toISOString();
+  };
+
+  const logActivity = async (
+    requestId: string,
+    type: string,
+    opts?: { oldStatus?: string; newStatus?: string; message?: string }
+  ) => {
+    if (!user) return;
+    await supabase.from('request_activities' as any).insert({
+      request_id: requestId,
+      user_id: user.id,
+      activity_type: type,
+      old_status: opts?.oldStatus || null,
+      new_status: opts?.newStatus || null,
+      message: opts?.message || null,
+    } as any);
+  };
+
   const handleSave = async (submit = false) => {
     if (!form.title.trim() || !form.building_id || !form.unit_id) {
       toast.error('Please fill in all required fields');
@@ -147,8 +161,13 @@ export default function RequestDetail() {
         toast.error('Failed to create request');
         console.error(error);
       } else {
+        const newId = (data as any).id;
+        await logActivity(newId, 'created', { message: submit ? 'Request created and submitted' : 'Draft created' });
+        if (submit) {
+          await logActivity(newId, 'status_change', { oldStatus: 'draft', newStatus: 'submitted' });
+        }
         toast.success(submit ? 'Request submitted!' : 'Draft saved!');
-        navigate(`/requests/${(data as any).id}`);
+        navigate(`/requests/${newId}`);
       }
     } else {
       const { error } = await supabase
@@ -159,6 +178,9 @@ export default function RequestDetail() {
         toast.error('Failed to update');
         console.error(error);
       } else {
+        if (submit && request?.status === 'draft') {
+          await logActivity(id!, 'status_change', { oldStatus: 'draft', newStatus: 'submitted' });
+        }
         toast.success(submit ? 'Request submitted!' : 'Request updated');
         fetchRequest();
       }
@@ -166,19 +188,14 @@ export default function RequestDetail() {
     setSaving(false);
   };
 
-  const buildScheduledDatetime = (): string | null => {
-    if (!form.scheduled_date) return null;
-    const d = new Date(form.scheduled_date);
-    d.setHours(parseInt(form.scheduled_hour), parseInt(form.scheduled_minute), 0, 0);
-    return d.toISOString();
-  };
-
   const handleStatusChange = async (newStatus: UnifiedRequestStatus) => {
     if (newStatus === 'intervention' && !form.scheduled_date) {
       toast.error('Please select a scheduled date and time first');
       return;
     }
+    const oldStatus = request.status;
     const updatePayload: any = { status: newStatus };
+
     if (isAdmin) {
       updatePayload.internal_notes = form.internal_notes.trim() || null;
       updatePayload.estimated_amount = form.estimated_amount ? parseFloat(form.estimated_amount) : null;
@@ -196,6 +213,17 @@ export default function RequestDetail() {
       toast.error('Failed to update status');
       console.error(error);
     } else {
+      await logActivity(id!, 'status_change', { oldStatus, newStatus });
+
+      // Log specific activity types
+      if (newStatus === 'quoted') await logActivity(id!, 'quotation_sent');
+      if (newStatus === 'waiting_approval' && oldStatus === 'quoted') {
+        await logActivity(id!, 'quotation_approved', { message: 'Resident approved the quotation' });
+      }
+      if (newStatus === 'rejected' && ['quoted', 'waiting_approval'].includes(oldStatus)) {
+        await logActivity(id!, 'quotation_rejected', { message: 'Quotation was rejected' });
+      }
+
       toast.success(`Status changed to ${newStatus.replace(/_/g, ' ')}`);
       fetchRequest();
     }
@@ -206,6 +234,7 @@ export default function RequestDetail() {
       toast.error('Please select a scheduled date and time first');
       return;
     }
+    const oldStatus = request.status;
     const { error } = await supabase
       .from('unified_requests' as any)
       .update({
@@ -222,9 +251,22 @@ export default function RequestDetail() {
       toast.error('Conversion failed');
       console.error(error);
     } else {
+      await logActivity(id!, 'status_change', { oldStatus, newStatus: 'intervention', message: 'Converted to intervention' });
       toast.success('Converted to intervention!');
       fetchRequest();
     }
+  };
+
+  const handleSaveAdmin = async () => {
+    const payload: any = {
+      internal_notes: form.internal_notes.trim() || null,
+      estimated_amount: form.estimated_amount ? parseFloat(form.estimated_amount) : null,
+      provider: form.provider.trim() || null,
+      scheduled_date: buildScheduledDatetime(),
+    };
+    const { error } = await supabase.from('unified_requests' as any).update(payload).eq('id', id);
+    if (error) toast.error('Failed to save');
+    else { toast.success('Saved'); fetchRequest(); }
   };
 
   const handleDelete = async () => {
@@ -235,9 +277,6 @@ export default function RequestDetail() {
       navigate('/requests');
     }
   };
-
-  const updateField = (field: string, value: any) =>
-    setForm((prev) => ({ ...prev, [field]: value }));
 
   if (loading) {
     return (
@@ -279,450 +318,51 @@ export default function RequestDetail() {
           </div>
         </div>
 
-        {/* Request Type Selection (only on new) */}
-        {isNew && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Request Type</CardTitle>
-              <CardDescription>What kind of request is this?</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <RadioGroup
-                value={form.request_type}
-                onValueChange={(v) => updateField('request_type', v)}
-                className="grid gap-4 sm:grid-cols-2"
-              >
-                {REQUEST_TYPES.map((t) => {
-                  const Icon = t.value === 'quotation' ? FileText : Wrench;
-                  return (
-                    <label
-                      key={t.value}
-                      className={`flex items-start gap-3 rounded-lg border-2 p-4 cursor-pointer transition-all ${
-                        form.request_type === t.value
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-muted-foreground/50'
-                      }`}
-                    >
-                      <RadioGroupItem value={t.value} className="mt-1" />
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <Icon className="h-4 w-4 text-primary" />
-                          <span className="font-medium">{t.label}</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1">{t.description}</p>
-                      </div>
-                    </label>
-                  );
-                })}
-              </RadioGroup>
-
-              {form.request_type === 'quotation' && (
-                <div className="mt-4 rounded-lg bg-info/5 border border-info/20 p-3">
-                  <p className="text-sm text-info">
-                    💡 Quotation requests will be reviewed by an administrator who can then convert them into an intervention once approved.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Details Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Details</CardTitle>
-            <CardDescription>
-              {canEdit ? 'Fill in the request details' : 'Request information'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Building *</Label>
-                <Select
-                  value={form.building_id}
-                  onValueChange={(v) => { updateField('building_id', v); updateField('unit_id', ''); }}
-                  disabled={!canEdit}
-                >
-                  <SelectTrigger><SelectValue placeholder="Select building" /></SelectTrigger>
-                  <SelectContent>
-                    {buildings.map((b) => (
-                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Unit *</Label>
-                <Select
-                  value={form.unit_id}
-                  onValueChange={(v) => updateField('unit_id', v)}
-                  disabled={!canEdit || !form.building_id}
-                >
-                  <SelectTrigger><SelectValue placeholder="Select unit" /></SelectTrigger>
-                  <SelectContent>
-                    {units.map((u) => (
-                      <SelectItem key={u.id} value={u.id}>{u.unit_number}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Title *</Label>
-              <Input
-                value={form.title}
-                onChange={(e) => updateField('title', e.target.value)}
-                disabled={!canEdit}
-                placeholder="Brief description of the issue or need"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Description</Label>
-              <Textarea
-                value={form.description}
-                onChange={(e) => updateField('description', e.target.value)}
-                disabled={!canEdit}
-                rows={4}
-                placeholder="Detailed description..."
-              />
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Category *</Label>
-                <Select value={form.category} onValueChange={(v) => updateField('category', v)} disabled={!canEdit}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map((c) => (
-                      <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Priority *</Label>
-                <Select
-                  value={form.priority.toString()}
-                  onValueChange={(v) => updateField('priority', parseInt(v))}
-                  disabled={!canEdit}
-                >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {PRIORITIES.map((p) => (
-                      <SelectItem key={p.value} value={p.value.toString()}>{p.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Cost info (read-only for non-admins) */}
-            {!isNew && !isAdmin && (
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Estimated Amount</Label>
-                  <Input
-                    type="text"
-                    value={form.estimated_amount ? `€ ${parseFloat(form.estimated_amount).toFixed(2)}` : 'Not yet estimated'}
-                    disabled
-                    className={!form.estimated_amount ? 'text-muted-foreground italic' : ''}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Provider / Vendor</Label>
-                  <Input
-                    value={form.provider || 'Not yet assigned'}
-                    disabled
-                    className={!form.provider ? 'text-muted-foreground italic' : ''}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Save actions for draft */}
-            {canEdit && (
-              <div className="flex gap-2 pt-2">
-                <Button onClick={() => handleSave(false)} disabled={saving} variant="outline">
-                  <Save className="mr-2 h-4 w-4" /> Save Draft
-                </Button>
-                <Button onClick={() => handleSave(true)} disabled={saving}>
-                  <Send className="mr-2 h-4 w-4" /> Submit Request
-                </Button>
-                {!isNew && (
-                  <Button variant="ghost" className="text-destructive ml-auto" onClick={handleDelete}>
-                    <Trash2 className="mr-2 h-4 w-4" /> Delete
-                  </Button>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* ══════ ADMIN ACTIONS ══════ */}
-        {isAdmin && request && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Admin Actions</CardTitle>
-              <CardDescription>Manage this request</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Internal notes */}
-              <div className="space-y-2">
-                <Label>Internal Notes (admin only)</Label>
-                <Textarea
-                  value={form.internal_notes}
-                  onChange={(e) => updateField('internal_notes', e.target.value)}
-                  rows={3}
-                  placeholder="Notes visible only to administrators..."
-                />
-              </div>
-
-              {/* Provider & amount */}
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Estimated Amount</Label>
-                  <Input
-                    type="number"
-                    value={form.estimated_amount}
-                    onChange={(e) => updateField('estimated_amount', e.target.value)}
-                    placeholder="0.00"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Assign Provider / Vendor</Label>
-                  <Input
-                    value={form.provider}
-                    onChange={(e) => updateField('provider', e.target.value)}
-                    placeholder="Staff or vendor name"
-                  />
-                </div>
-              </div>
-
-              {/* Schedule date & time picker — shown when preparing intervention */}
-              {['in_review', 'quoted', 'waiting_approval', 'intervention'].includes(request.status) && (
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <CalendarCheck className="h-4 w-4" /> Schedule Intervention
-                  </Label>
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    <div className="sm:col-span-1">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !form.scheduled_date && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {form.scheduled_date ? format(form.scheduled_date, 'PPP') : 'Pick a date'}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={form.scheduled_date || undefined}
-                            onSelect={(d) => updateField('scheduled_date', d || null)}
-                            disabled={(date) => date < new Date()}
-                            initialFocus
-                            className={cn("p-3 pointer-events-auto")}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <Select value={form.scheduled_hour} onValueChange={(v) => updateField('scheduled_hour', v)}>
-                        <SelectTrigger className="w-[80px]"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')).map(h => (
-                            <SelectItem key={h} value={h}>{h}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <span className="text-muted-foreground font-bold">:</span>
-                      <Select value={form.scheduled_minute} onValueChange={(v) => updateField('scheduled_minute', v)}>
-                        <SelectTrigger className="w-[80px]"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {['00', '15', '30', '45'].map(m => (
-                            <SelectItem key={m} value={m}>{m}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  {request.scheduled_date && (
-                    <p className="text-sm text-muted-foreground">
-                      Currently scheduled: {format(new Date(request.scheduled_date), 'PPP')} at {format(new Date(request.scheduled_date), 'HH:mm')}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              <Separator />
-
-              {/* ── Status action buttons per current status ── */}
-              <div className="flex flex-wrap gap-2">
-
-                {/* SUBMITTED → In Review */}
-                {request.status === 'submitted' && (
-                  <Button variant="outline" onClick={() => handleStatusChange('in_review')}>
-                    <Search className="mr-2 h-4 w-4" /> Mark In Review
-                  </Button>
-                )}
-
-                {/* IN REVIEW → Quoted (prepare quotation) */}
-                {request.status === 'in_review' && (
-                  <>
-                    <Button variant="outline" onClick={() => handleStatusChange('quoted')}>
-                      <FileText className="mr-2 h-4 w-4" /> Send Quotation
-                    </Button>
-                    {/* Direct to intervention (no quote needed) */}
-                    <Button onClick={handleConvertToIntervention}>
-                      <ArrowRightCircle className="mr-2 h-4 w-4" /> Convert to Intervention
-                    </Button>
-                  </>
-                )}
-
-                {/* QUOTED → Waiting Approval (if admin needs to escalate) */}
-                {request.status === 'quoted' && (
-                  <Button variant="outline" onClick={() => handleStatusChange('waiting_approval')}>
-                    <Hourglass className="mr-2 h-4 w-4" /> Send for Approval
-                  </Button>
-                )}
-
-                {/* WAITING APPROVAL → admin can also convert or send back */}
-                {request.status === 'waiting_approval' && (
-                  <>
-                    <Button onClick={handleConvertToIntervention}>
-                      <ArrowRightCircle className="mr-2 h-4 w-4" /> Convert to Intervention
-                    </Button>
-                    <Button variant="outline" onClick={() => handleStatusChange('quoted')}>
-                      <FileText className="mr-2 h-4 w-4" /> Back to Quoted
-                    </Button>
-                    <Button variant="outline" onClick={() => handleStatusChange('in_review')}>
-                      <Search className="mr-2 h-4 w-4" /> Back to Review
-                    </Button>
-                  </>
-                )}
-
-                {/* INTERVENTION → Completed */}
-                {request.status === 'intervention' && (
-                  <Button
-                    onClick={() => handleStatusChange('completed')}
-                    className="bg-success hover:bg-success/90 text-success-foreground"
-                  >
-                    <CheckCircle className="mr-2 h-4 w-4" /> Mark Completed
-                  </Button>
-                )}
-
-                {/* Reject from any active status */}
-                {['submitted', 'in_review', 'quoted', 'waiting_approval', 'intervention'].includes(request.status) && (
-                  <Button variant="destructive" onClick={() => handleStatusChange('rejected')}>
-                    <XCircle className="mr-2 h-4 w-4" /> Reject
-                  </Button>
-                )}
-
-                {/* Save admin changes without status change */}
-                {!['completed', 'rejected'].includes(request.status) && (
-                  <Button variant="outline" onClick={() => {
-                    const payload: any = {
-                      internal_notes: form.internal_notes.trim() || null,
-                      estimated_amount: form.estimated_amount ? parseFloat(form.estimated_amount) : null,
-                      provider: form.provider.trim() || null,
-                      scheduled_date: buildScheduledDatetime(),
-                    };
-                    supabase.from('unified_requests' as any).update(payload).eq('id', id).then(({ error }: any) => {
-                      if (error) toast.error('Failed to save');
-                      else { toast.success('Saved'); fetchRequest(); }
-                    });
-                  }}>
-                    <Save className="mr-2 h-4 w-4" /> Save Changes
-                  </Button>
-                )}
-
-                <Button variant="ghost" className="text-destructive ml-auto" onClick={handleDelete}>
-                  <Trash2 className="mr-2 h-4 w-4" /> Delete
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* ══════ RESIDENT APPROVAL (for quoted & waiting_approval) ══════ */}
+        {/* Resident Approval (prominent placement) */}
         {!isAdmin && isOwner && request && ['quoted', 'waiting_approval'].includes(request.status) && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Your Approval Required</CardTitle>
-              <CardDescription>
-                {request.status === 'quoted'
-                  ? 'A quotation has been prepared. Please review the estimated costs and approve or reject.'
-                  : 'This request is awaiting your final approval before work can begin.'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
-                {form.estimated_amount && (
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Estimated Amount</span>
-                    <span className="font-semibold">€ {parseFloat(form.estimated_amount).toFixed(2)}</span>
-                  </div>
-                )}
-                {form.provider && (
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Provider</span>
-                    <span className="font-medium">{form.provider}</span>
-                  </div>
-                )}
-                {request.scheduled_date && (
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Scheduled Date</span>
-                    <span className="font-medium">
-                      {format(new Date(request.scheduled_date), 'PPP')} at {format(new Date(request.scheduled_date), 'HH:mm')}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handleStatusChange('waiting_approval')}
-                  className="bg-success hover:bg-success/90 text-success-foreground"
-                >
-                  <CheckCircle className="mr-2 h-4 w-4" /> Approve
-                </Button>
-                <Button variant="destructive" onClick={() => handleStatusChange('rejected')}>
-                  <XCircle className="mr-2 h-4 w-4" /> Reject
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <ResidentApproval
+            request={request}
+            estimatedAmount={form.estimated_amount}
+            provider={form.provider}
+            onStatusChange={handleStatusChange}
+          />
         )}
 
-        {/* Completed / Rejected read-only info */}
+        {/* Request Form */}
+        <RequestForm
+          form={form}
+          onUpdate={updateField}
+          buildings={buildings}
+          units={units}
+          canEdit={canEdit}
+          isNew={isNew}
+          isAdmin={isAdmin}
+          saving={saving}
+          onSave={handleSave}
+          onDelete={!isNew ? handleDelete : undefined}
+        />
+
+        {/* Admin Actions */}
+        {isAdmin && request && (
+          <AdminActions
+            request={request}
+            form={form}
+            onUpdate={updateField}
+            onStatusChange={handleStatusChange}
+            onConvertToIntervention={handleConvertToIntervention}
+            onSaveAdmin={handleSaveAdmin}
+            onDelete={handleDelete}
+          />
+        )}
+
+        {/* Completed / Rejected card */}
         {request && ['completed', 'rejected'].includes(request.status) && (
-          <Card>
-            <CardHeader>
-              <CardTitle>{request.status === 'completed' ? '✅ Request Completed' : '❌ Request Rejected'}</CardTitle>
-              <CardDescription>
-                {request.status === 'completed' && request.completed_at
-                  ? `Completed on ${format(new Date(request.completed_at), 'PPP')}`
-                  : 'This request has been closed.'}
-              </CardDescription>
-            </CardHeader>
-            {request.estimated_amount && (
-              <CardContent>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Final Amount</span>
-                  <span className="font-semibold">€ {request.estimated_amount.toFixed(2)}</span>
-                </div>
-              </CardContent>
-            )}
-          </Card>
+          <RequestCompletedCard request={request} />
+        )}
+
+        {/* Timeline & Comments */}
+        {!isNew && id && (
+          <RequestTimeline requestId={id} />
         )}
       </div>
     </AppLayout>
