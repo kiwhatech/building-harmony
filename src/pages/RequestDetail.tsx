@@ -205,6 +205,7 @@ export default function RequestDetail() {
       updatePayload.internal_notes = form.internal_notes.trim() || null;
       updatePayload.estimated_amount = form.estimated_amount ? parseFloat(form.estimated_amount) : null;
       updatePayload.provider = form.provider.trim() || null;
+      updatePayload.assigned_provider_id = form.assigned_provider_id || null;
     }
     if (newStatus === 'intervention') updatePayload.scheduled_date = buildScheduledDatetime();
     if (newStatus === 'completed') updatePayload.completed_at = new Date().toISOString();
@@ -267,6 +268,7 @@ export default function RequestDetail() {
       internal_notes: form.internal_notes.trim() || null,
       estimated_amount: form.estimated_amount ? parseFloat(form.estimated_amount) : null,
       provider: form.provider.trim() || null,
+      assigned_provider_id: form.assigned_provider_id || null,
       scheduled_date: buildScheduledDatetime(),
     };
     const { error } = await supabase.from('unified_requests' as any).update(payload).eq('id', id);
