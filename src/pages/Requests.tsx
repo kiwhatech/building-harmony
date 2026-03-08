@@ -8,11 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-  Plus, Search, Filter, X, Loader2, ClipboardList, Building2, Calendar, User, ChevronRight,
+  Plus, Search, Filter, X, Loader2, ClipboardList, Building2, Calendar, ChevronRight,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { RequestStatusBadge } from '@/components/requests/RequestStatusBadge';
@@ -52,6 +53,16 @@ interface RequestRow {
   units?: { unit_number: string } | null;
 }
 
+// Status grouping for admin tabs
+const statusGroups = [
+  { key: 'all', label: 'All', statuses: null },
+  { key: 'new', label: 'New', statuses: ['submitted'] },
+  { key: 'active', label: 'In Progress', statuses: ['in_review', 'quoted', 'waiting_approval'] },
+  { key: 'interventions', label: 'Interventions', statuses: ['intervention'] },
+  { key: 'closed', label: 'Closed', statuses: ['completed', 'rejected'] },
+  { key: 'drafts', label: 'Drafts', statuses: ['draft'] },
+];
+
 export default function Requests() {
   const navigate = useNavigate();
   const { hasRole } = useAuth();
@@ -65,6 +76,7 @@ export default function Requests() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [buildingFilter, setBuildingFilter] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
 
   useEffect(() => {
     fetchData();
@@ -72,8 +84,6 @@ export default function Requests() {
 
   const fetchData = async () => {
     setLoading(true);
-
-    // Fetch buildings for filter
     const { data: bData } = await supabase.from('buildings').select('id, name').order('name');
     setBuildings(bData || []);
 
@@ -92,12 +102,25 @@ export default function Requests() {
     setLoading(false);
   };
 
-  const filtered = requests.filter(
-    (r) =>
-      !search ||
-      r.title.toLowerCase().includes(search.toLowerCase()) ||
-      r.description?.toLowerCase().includes(search.toLowerCase())
+  const getFilteredByTab = (items: RequestRow[]) => {
+    const group = statusGroups.find(g => g.key === activeTab);
+    if (!group || !group.statuses) return items;
+    return items.filter(r => group.statuses!.includes(r.status));
+  };
+
+  const filtered = getFilteredByTab(
+    requests.filter(
+      (r) =>
+        !search ||
+        r.title.toLowerCase().includes(search.toLowerCase()) ||
+        r.description?.toLowerCase().includes(search.toLowerCase())
+    )
   );
+
+  const getTabCount = (statuses: string[] | null) => {
+    if (!statuses) return requests.length;
+    return requests.filter(r => statuses.includes(r.status)).length;
+  };
 
   const hasActiveFilters = search || statusFilter !== 'all' || typeFilter !== 'all' || buildingFilter !== 'all';
 
@@ -187,80 +210,121 @@ export default function Requests() {
           </Card>
         )}
 
-        {/* List */}
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : filtered.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <ClipboardList className="mb-4 h-12 w-12 text-muted-foreground/50" />
-              <h3 className="mb-2 text-lg font-semibold">No requests found</h3>
-              <p className="mb-4 text-center text-muted-foreground">
-                {hasActiveFilters ? 'No requests match your filters.' : 'No requests have been submitted yet.'}
-              </p>
-              {hasActiveFilters && (
-                <Button variant="outline" onClick={clearFilters}>Clear Filters</Button>
-              )}
-            </CardContent>
-          </Card>
+        {/* Admin: Status-based tabs */}
+        {isAdmin ? (
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="w-full justify-start overflow-x-auto">
+              {statusGroups.map((g) => (
+                <TabsTrigger key={g.key} value={g.key} className="gap-1.5">
+                  {g.label}
+                  <Badge variant="secondary" className="ml-1 h-5 min-w-[20px] px-1.5 text-xs">
+                    {getTabCount(g.statuses)}
+                  </Badge>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            {statusGroups.map((g) => (
+              <TabsContent key={g.key} value={g.key}>
+                <RequestList requests={filtered} loading={loading} hasActiveFilters={hasActiveFilters} clearFilters={clearFilters} navigate={navigate} />
+              </TabsContent>
+            ))}
+          </Tabs>
         ) : (
-          <div className="grid gap-4">
-            {filtered.map((req) => {
-              const p = priorityConfig[req.priority] || priorityConfig[2];
-              return (
-                <Card
-                  key={req.id}
-                  className="cursor-pointer transition-all hover:shadow-md"
-                  onClick={() => navigate(`/requests/${req.id}`)}
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-3 flex-1">
-                        <div className="rounded-lg bg-primary/10 p-2 mt-1 shrink-0">
-                          <ClipboardList className="h-5 w-5 text-primary" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <CardTitle className="text-lg truncate">{req.title}</CardTitle>
-                            <span className={`text-xs ${p.color}`}>{p.label}</span>
-                          </div>
-                          <CardDescription className="mt-1">
-                            <span className="flex items-center gap-1">
-                              <Building2 className="h-3 w-3" />
-                              {req.buildings?.name || '—'} — Unit {req.units?.unit_number || '—'}
-                            </span>
-                          </CardDescription>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
-                        <RequestTypeBadge type={req.request_type} />
-                        <Badge variant="secondary" className="capitalize">
-                          {categoryLabels[req.category] || req.category}
-                        </Badge>
-                        <RequestStatusBadge status={req.status} />
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                    </div>
-                  </CardHeader>
-                  {req.description && (
-                    <CardContent className="pt-0">
-                      <p className="text-sm text-muted-foreground line-clamp-2">{req.description}</p>
-                      <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {format(new Date(req.created_at), 'MMM d, yyyy')}
-                        </span>
-                      </div>
-                    </CardContent>
-                  )}
-                </Card>
-              );
-            })}
-          </div>
+          <RequestList requests={filtered} loading={loading} hasActiveFilters={hasActiveFilters} clearFilters={clearFilters} navigate={navigate} />
         )}
       </div>
     </AppLayout>
+  );
+}
+
+function RequestList({
+  requests, loading, hasActiveFilters, clearFilters, navigate,
+}: {
+  requests: RequestRow[];
+  loading: boolean;
+  hasActiveFilters: boolean;
+  clearFilters: () => void;
+  navigate: (path: string) => void;
+}) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (requests.length === 0) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-12">
+          <ClipboardList className="mb-4 h-12 w-12 text-muted-foreground/50" />
+          <h3 className="mb-2 text-lg font-semibold">No requests found</h3>
+          <p className="mb-4 text-center text-muted-foreground">
+            {hasActiveFilters ? 'No requests match your filters.' : 'No requests have been submitted yet.'}
+          </p>
+          {hasActiveFilters && (
+            <Button variant="outline" onClick={clearFilters}>Clear Filters</Button>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="grid gap-3">
+      {requests.map((req) => {
+        const p = priorityConfig[req.priority] || priorityConfig[2];
+        return (
+          <Card
+            key={req.id}
+            className="cursor-pointer transition-all hover:shadow-md"
+            onClick={() => navigate(`/requests/${req.id}`)}
+          >
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3 flex-1">
+                  <div className="rounded-lg bg-primary/10 p-2 mt-1 shrink-0">
+                    <ClipboardList className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <CardTitle className="text-lg truncate">{req.title}</CardTitle>
+                      <span className={`text-xs ${p.color}`}>{p.label}</span>
+                    </div>
+                    <CardDescription className="mt-1">
+                      <span className="flex items-center gap-1">
+                        <Building2 className="h-3 w-3" />
+                        {req.buildings?.name || '—'} — Unit {req.units?.unit_number || '—'}
+                      </span>
+                    </CardDescription>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+                  <RequestTypeBadge type={req.request_type} />
+                  <Badge variant="secondary" className="capitalize">
+                    {categoryLabels[req.category] || req.category}
+                  </Badge>
+                  <RequestStatusBadge status={req.status} />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </div>
+            </CardHeader>
+            {req.description && (
+              <CardContent className="pt-0">
+                <p className="text-sm text-muted-foreground line-clamp-2">{req.description}</p>
+                <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    {format(new Date(req.created_at), 'MMM d, yyyy')}
+                  </span>
+                </div>
+              </CardContent>
+            )}
+          </Card>
+        );
+      })}
+    </div>
   );
 }
