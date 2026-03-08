@@ -523,7 +523,7 @@ export default function CondoFees() {
               <Accordion type="multiple" className="space-y-2">
                 {buildingMTables.map(mt => {
                   const vals = millesimiValues.filter(v => v.millesimi_table_id === mt.id);
-                  const sum = vals.reduce((s, v) => s + Number(v.value), 0);
+                  const sum = Math.round(vals.reduce((s, v) => s + Number(v.value), 0) * 100) / 100;
                   const isEditing = !!editingValues[mt.id];
 
                   return (
