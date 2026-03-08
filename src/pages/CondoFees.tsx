@@ -466,11 +466,40 @@ export default function CondoFees() {
                           <Building2 className="h-3.5 w-3.5" />
                           {mtDialogUnits.length} unit{mtDialogUnits.length !== 1 ? 's' : ''} will be included
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          {mtDialogUnits.length > 0
-                            ? `Units: ${mtDialogUnits.map(u => u.unit_number).join(', ')} — millesimi will be equally distributed (1000 ÷ ${mtDialogUnits.length} = ${(1000 / mtDialogUnits.length).toFixed(2)} each)`
-                            : 'No units found for this building. Please add units first.'}
-                        </p>
+                        {mtDialogUnits.length > 0 ? (() => {
+                          const totalArea = mtDialogUnits.reduce((s, u) => s + (Number(u.area_sqft) || 0), 0);
+                          const useArea = totalArea > 0 && mtDialogUnits.every(u => u.area_sqft && Number(u.area_sqft) > 0);
+                          return (
+                            <>
+                              <p className="text-xs text-muted-foreground">
+                                {useArea
+                                  ? `Distribution based on square meters (total: ${totalArea.toLocaleString()} sqm)`
+                                  : `Equal distribution (1000 ÷ ${mtDialogUnits.length} = ${(1000 / mtDialogUnits.length).toFixed(2)} each)`}
+                              </p>
+                              {useArea && (
+                                <div className="mt-2 space-y-0.5">
+                                  {mtDialogUnits.map(u => {
+                                    const area = Number(u.area_sqft) || 0;
+                                    const mill = Math.round((area / totalArea) * 1000 * 100) / 100;
+                                    return (
+                                      <p key={u.id} className="text-xs text-muted-foreground">
+                                        Unit {u.unit_number}: {area} sqm → {mill} millesimi
+                                      </p>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                              {!useArea && mtDialogUnits.some(u => !u.area_sqft || Number(u.area_sqft) === 0) && (
+                                <p className="text-xs text-warning flex items-center gap-1 mt-1">
+                                  <AlertTriangle className="h-3 w-3" />
+                                  Some units have no square meters set — using equal distribution instead.
+                                </p>
+                              )}
+                            </>
+                          );
+                        })() : (
+                          <p className="text-xs text-muted-foreground">No units found for this building. Please add units first.</p>
+                        )}
                       </div>
                     )}
                   </div>
