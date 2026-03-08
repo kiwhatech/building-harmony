@@ -25,7 +25,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import {
-  Calculator, Plus, Loader2, Building2, AlertTriangle, Info, Trash2, Save,
+  Calculator, Plus, Loader2, Building2, AlertTriangle, Info, Trash2, Save, Pencil,
 } from 'lucide-react';
 
 // ── Types ──────────────────────────────────────────────
@@ -577,7 +577,35 @@ export default function CondoFees() {
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="px-4 pb-4">
+                        {/* Edit table label & code */}
+                        {editingTableMeta[mt.id] ? (
+                          <div className="flex items-end gap-2 mb-3 p-3 rounded-lg border bg-muted/50">
+                            <div className="space-y-1">
+                              <Label className="text-xs">Label</Label>
+                              <Input
+                                value={editingTableMeta[mt.id].label}
+                                onChange={e => setEditingTableMeta(prev => ({ ...prev, [mt.id]: { ...prev[mt.id], label: e.target.value } }))}
+                                className="h-8"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">Code</Label>
+                              <Input
+                                value={editingTableMeta[mt.id].code}
+                                onChange={e => setEditingTableMeta(prev => ({ ...prev, [mt.id]: { ...prev[mt.id], code: e.target.value } }))}
+                                className="h-8"
+                              />
+                            </div>
+                            <Button size="sm" onClick={() => saveTableMeta(mt.id)} disabled={savingTableMeta || !editingTableMeta[mt.id]?.label || !editingTableMeta[mt.id]?.code}>
+                              <Save className="mr-1 h-3 w-3" />{savingTableMeta ? 'Saving...' : 'Save'}
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => setEditingTableMeta(prev => { const n = { ...prev }; delete n[mt.id]; return n; })}>Cancel</Button>
+                          </div>
+                        ) : null}
                         <div className="flex gap-2 mb-3">
+                          <Button size="sm" variant="outline" onClick={() => setEditingTableMeta(prev => ({ ...prev, [mt.id]: { label: mt.label, code: mt.code } }))}>
+                            <Pencil className="mr-1 h-3 w-3" />Edit Table
+                          </Button>
                           {!isEditing ? (
                             <Button size="sm" variant="outline" onClick={() => initEditingForTable(mt.id)}>Edit Values</Button>
                           ) : (
