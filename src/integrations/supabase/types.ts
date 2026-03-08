@@ -658,7 +658,9 @@ export type Database = {
           notes: string | null
           payment_date: string
           payment_method: string | null
+          payment_type: string
           reference_number: string | null
+          request_id: string | null
           status: string
           stripe_session_id: string | null
           updated_at: string
@@ -675,7 +677,9 @@ export type Database = {
           notes?: string | null
           payment_date?: string
           payment_method?: string | null
+          payment_type?: string
           reference_number?: string | null
+          request_id?: string | null
           status?: string
           stripe_session_id?: string | null
           updated_at?: string
@@ -692,7 +696,9 @@ export type Database = {
           notes?: string | null
           payment_date?: string
           payment_method?: string | null
+          payment_type?: string
           reference_number?: string | null
+          request_id?: string | null
           status?: string
           stripe_session_id?: string | null
           updated_at?: string
@@ -703,6 +709,13 @@ export type Database = {
             columns: ["fee_id"]
             isOneToOne: false
             referencedRelation: "fees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "unified_requests"
             referencedColumns: ["id"]
           },
         ]
@@ -1192,6 +1205,7 @@ export type Database = {
         | "quoted"
         | "waiting_approval"
         | "intervention"
+        | "ready_for_payment"
       unified_request_type: "quotation" | "intervention"
     }
     CompositeTypes: {
@@ -1372,6 +1386,7 @@ export const Constants = {
         "quoted",
         "waiting_approval",
         "intervention",
+        "ready_for_payment",
       ],
       unified_request_type: ["quotation", "intervention"],
     },
