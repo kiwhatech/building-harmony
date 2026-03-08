@@ -651,7 +651,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           currency: string
-          fee_id: string
+          fee_id: string | null
           gateway_payment_id: string | null
           id: string
           metadata: Json | null
@@ -670,7 +670,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           currency?: string
-          fee_id: string
+          fee_id?: string | null
           gateway_payment_id?: string | null
           id?: string
           metadata?: Json | null
@@ -689,7 +689,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           currency?: string
-          fee_id?: string
+          fee_id?: string | null
           gateway_payment_id?: string | null
           id?: string
           metadata?: Json | null
