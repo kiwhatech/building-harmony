@@ -760,7 +760,7 @@ export default function CondoFees() {
                             <Input value={cat.code} onChange={e => updateCategory(idx, 'code', e.target.value)} placeholder="GENERAL" />
                           </div>
                           <div>
-                            <Label className="text-xs">Label</Label>
+                            <Label className="text-xs">Category</Label>
                             <Input value={cat.label} onChange={e => updateCategory(idx, 'label', e.target.value)} placeholder="Spese generali" />
                           </div>
                           <div>
@@ -860,7 +860,7 @@ export default function CondoFees() {
                              {editBudgetCats.map((cat, idx) => (
                                <div key={idx} className="grid grid-cols-[1fr_1fr_1fr_1fr_auto] gap-2 items-end">
                                  <div>
-                                   <Label className="text-xs">Label</Label>
+                                   <Label className="text-xs">Category</Label>
                                    <Input value={cat.label} onChange={e => setEditBudgetCats(prev => prev.map((c, i) => i === idx ? { ...c, label: e.target.value } : c))} />
                                  </div>
                                  <div>
