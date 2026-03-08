@@ -491,7 +491,23 @@ export default function CondoFees() {
                               <Button size="sm" variant="outline" onClick={() => setEditingValues(prev => { const n = { ...prev }; delete n[mt.id]; return n; })}>Cancel</Button>
                             </>
                           )}
-                          <Button size="sm" variant="destructive" onClick={() => handleDeleteMTable(mt.id)}><Trash2 className="h-3 w-3" /></Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button size="sm" variant="destructive"><Trash2 className="h-3 w-3" /></Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete millesimi table?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will permanently delete the table "{mt.label}" and all its millesimi values. This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteMTable(mt.id)}>Delete</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                         <Table>
                           <TableHeader>
