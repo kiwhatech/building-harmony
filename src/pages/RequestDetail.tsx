@@ -43,6 +43,7 @@ export default function RequestDetail() {
     scheduled_date: null,
     scheduled_hour: '09',
     scheduled_minute: '00',
+    preferred_provider_id: '',
   });
 
   const isOwner = request?.created_by === user?.id;
@@ -99,6 +100,7 @@ export default function RequestDetail() {
       scheduled_date: scheduledDate,
       scheduled_hour: scheduledDate ? format(scheduledDate, 'HH') : '09',
       scheduled_minute: scheduledDate ? format(scheduledDate, 'mm') : '00',
+      preferred_provider_id: d.preferred_provider_id || '',
     });
     setLoading(false);
   };
@@ -146,6 +148,7 @@ export default function RequestDetail() {
       priority: form.priority,
       estimated_amount: form.estimated_amount ? parseFloat(form.estimated_amount) : null,
       provider: form.provider.trim() || null,
+      preferred_provider_id: form.preferred_provider_id || null,
       ...(submit ? { status: 'submitted' } : {}),
     };
 
