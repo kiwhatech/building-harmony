@@ -57,12 +57,12 @@ export default function Fees() {
   const fetchData = async () => {
     try {
       const [bRes, fRes] = await Promise.all([
-        supabase.from('buildings').select('id, name').order('name'),
+        supabase.from('buildings').select('id, name, bank_details').order('name'),
         supabase.from('fees').select(`*, buildings!inner(name), units(unit_number)`).order('due_date', { ascending: false }),
       ]);
       if (bRes.error) throw bRes.error;
       if (fRes.error) throw fRes.error;
-      setBuildings(bRes.data || []);
+      setBuildings((bRes.data || []) as any);
       setFees(
         (fRes.data || []).map((fee: any) => ({
           ...fee,
@@ -89,26 +89,19 @@ export default function Fees() {
     }
   };
 
-  const [payingFeeId, setPayingFeeId] = useState<string | null>(null);
+  const [payModalOpen, setPayModalOpen] = useState(false);
+  const [selectedFee, setSelectedFee] = useState<Fee | null>(null);
 
-  const handlePayFee = async (feeId: string) => {
-    setPayingFeeId(feeId);
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { paymentType: 'unit_fee', feeId },
-      });
-      if (error) throw error;
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      } else {
-        throw new Error('No checkout URL returned');
-      }
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to start payment');
-    } finally {
-      setPayingFeeId(null);
-    }
+  const handlePayFee = (fee: Fee) => {
+    setSelectedFee(fee);
+    setPayModalOpen(true);
   };
+
+  const selectedBankDetails = useMemo(() => {
+    if (!selectedFee) return null;
+    const building = buildings.find(b => b.id === selectedFee.building_id);
+    return (building?.bank_details as Record<string, string>) || null;
+  }, [selectedFee, buildings]);
 
   const filteredFees = useMemo(() => fees.filter(fee => {
     const matchesSearch =
