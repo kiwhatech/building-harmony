@@ -112,36 +112,40 @@ export default function CondoFees() {
   const buildingMTables = useMemo(() => millesimiTables.filter(mt => mt.building_id === selectedBuilding), [millesimiTables, selectedBuilding]);
   const buildingBudgets = useMemo(() => budgets.filter(b => b.building_id === selectedBuilding), [budgets, selectedBuilding]);
 
+  // ── Dialog units (based on dialog building selection) ──
+  const mtDialogUnits = useMemo(() => units.filter(u => u.building_id === mtBuildingId), [units, mtBuildingId]);
+
   // ── Create millesimi table ──
   const handleCreateMTable = async () => {
-    if (!selectedBuilding || !mtCode || !mtLabel) return;
-    if (buildingUnits.length === 0) {
+    if (!mtBuildingId || !mtCode || !mtLabel) return;
+    if (mtDialogUnits.length === 0) {
       toast.error('No units found for this building. Please add units first.');
       return;
     }
     setIsSubmitting(true);
     try {
       const { data: tableData, error } = await supabase.from('millesimi_tables').insert({
-        building_id: selectedBuilding, code: mtCode.toUpperCase().replace(/\s+/g, '_'), label: mtLabel,
+        building_id: mtBuildingId, code: mtCode.toUpperCase().replace(/\s+/g, '_'), label: mtLabel,
       }).select().single();
       if (error) throw error;
 
       // Auto-create millesimi values for all building units (default: equally distributed to sum 1000)
-      const equalValue = Math.round((1000 / buildingUnits.length) * 100) / 100;
-      const unitValues = buildingUnits.map((u, idx) => ({
+      const equalValue = Math.round((1000 / mtDialogUnits.length) * 100) / 100;
+      const unitValues = mtDialogUnits.map((u, idx) => ({
         millesimi_table_id: tableData.id,
         unit_id: u.id,
-        // Last unit gets the remainder to ensure exact sum of 1000
-        value: idx === buildingUnits.length - 1
-          ? Math.round((1000 - equalValue * (buildingUnits.length - 1)) * 100) / 100
+        value: idx === mtDialogUnits.length - 1
+          ? Math.round((1000 - equalValue * (mtDialogUnits.length - 1)) * 100) / 100
           : equalValue,
       }));
       const { error: valErr } = await supabase.from('millesimi_values').insert(unitValues);
       if (valErr) throw valErr;
 
-      toast.success(`Millesimi table created with ${buildingUnits.length} units (equally distributed)`);
+      toast.success(`Millesimi table created with ${mtDialogUnits.length} units (equally distributed)`);
       setMtDialogOpen(false);
-      setMtCode(''); setMtLabel('');
+      setMtCode(''); setMtLabel(''); setMtBuildingId('');
+      // Switch page building selector to the chosen building
+      setSelectedBuilding(mtBuildingId);
       fetchAll();
     } catch (e: any) {
       toast.error(e.message || 'Failed to create');
