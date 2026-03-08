@@ -195,6 +195,17 @@ export default function CondoFees() {
     finally { setSavingMillesimi(false); }
   };
 
+  const handleDeleteBudget = async (budgetId: string) => {
+    try {
+      // Delete categories first, then the budget
+      await supabase.from('budget_categories').delete().eq('budget_id', budgetId);
+      const { error } = await supabase.from('building_budgets').delete().eq('id', budgetId);
+      if (error) throw error;
+      toast.success('Budget deleted');
+      fetchAll();
+    } catch (e: any) { toast.error(e.message || 'Failed to delete budget'); }
+  };
+
   // ── Budget creation ──
   const handleCreateBudget = async () => {
     if (!selectedBuilding || newCategories.length === 0) return;
