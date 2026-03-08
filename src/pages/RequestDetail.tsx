@@ -337,11 +337,20 @@ export default function RequestDetail() {
           />
         )}
 
-        {/* Resident Payment Card */}
+        {/* Resident Payment Card (only if no payment exists yet) */}
         {!isAdmin && isOwner && request?.status === 'ready_for_payment' && (
           <InterventionPaymentCard
             request={request}
             estimatedAmount={form.estimated_amount}
+          />
+        )}
+
+        {/* Payment Status Tracking */}
+        {request && ['ready_for_payment', 'completed'].includes(request.status) && (
+          <RequestPaymentStatus
+            requestId={request.id}
+            isAdmin={isAdmin}
+            onPaymentCompleted={fetchRequest}
           />
         )}
 
