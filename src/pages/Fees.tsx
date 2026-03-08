@@ -16,6 +16,7 @@ import {
   DollarSign, Loader2, Search, AlertTriangle, CheckCircle2, Clock, Calendar, CreditCard,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { FeePaymentModal } from '@/components/fees/FeePaymentModal';
 
 type PaymentStatus = 'pending' | 'paid' | 'overdue';
 
@@ -34,6 +35,7 @@ interface Fee {
 interface Building {
   id: string;
   name: string;
+  bank_details?: Record<string, string> | null;
 }
 
 const statusConfig: Record<PaymentStatus, { label: string; icon: typeof Clock; color: string }> = {
