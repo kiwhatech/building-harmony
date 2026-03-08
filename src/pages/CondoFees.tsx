@@ -259,8 +259,41 @@ export default function CondoFees() {
       fetchAll();
     } catch (e: any) { toast.error(e.message || 'Failed to delete budget'); }
   };
+  // ── Budget editing ──
+  const initEditBudget = (budgetId: string) => {
+    const cats = budgetCategories.filter(c => c.budget_id === budgetId);
+    setEditBudgetCats(cats.map(c => ({ id: c.id, code: c.code, label: c.label, total: String(c.total), millesimi_table_id: c.millesimi_table_id })));
+    setEditingBudget(budgetId);
+  };
 
-  // ── Budget creation ──
+  const saveBudgetEdits = async () => {
+    if (!editingBudget || editBudgetCats.length === 0) return;
+    setSavingBudget(true);
+    try {
+      // Delete old categories and re-insert
+      await supabase.from('budget_categories').delete().eq('budget_id', editingBudget);
+      const cats = editBudgetCats.map(c => ({
+        budget_id: editingBudget,
+        millesimi_table_id: c.millesimi_table_id,
+        code: c.code.toUpperCase().replace(/\s+/g, '_'),
+        label: c.label,
+        total: parseFloat(c.total) || 0,
+      }));
+      const { error: catErr } = await supabase.from('budget_categories').insert(cats);
+      if (catErr) throw catErr;
+      // Update total amount
+      const totalAmount = cats.reduce((s, c) => s + c.total, 0);
+      const { error: budErr } = await supabase.from('building_budgets').update({ total_amount: totalAmount }).eq('id', editingBudget);
+      if (budErr) throw budErr;
+      toast.success('Budget updated');
+      setEditingBudget(null);
+      setEditBudgetCats([]);
+      fetchAll();
+    } catch (e: any) { toast.error(e.message || 'Failed to update budget'); }
+    finally { setSavingBudget(false); }
+  };
+
+
   const handleCreateBudget = async () => {
     if (!selectedBuilding || newCategories.length === 0) return;
     // Check: only 1 budget per building per year
