@@ -185,6 +185,7 @@ export type Database = {
       buildings: {
         Row: {
           address: string
+          bank_details: Json | null
           city: string | null
           created_at: string
           created_by: string | null
@@ -199,6 +200,7 @@ export type Database = {
         }
         Insert: {
           address: string
+          bank_details?: Json | null
           city?: string | null
           created_at?: string
           created_by?: string | null
@@ -213,6 +215,7 @@ export type Database = {
         }
         Update: {
           address?: string
+          bank_details?: Json | null
           city?: string | null
           created_at?: string
           created_by?: string | null
@@ -663,6 +666,7 @@ export type Database = {
           request_id: string | null
           status: string
           stripe_session_id: string | null
+          trn: string | null
           updated_at: string
         }
         Insert: {
@@ -682,6 +686,7 @@ export type Database = {
           request_id?: string | null
           status?: string
           stripe_session_id?: string | null
+          trn?: string | null
           updated_at?: string
         }
         Update: {
@@ -701,6 +706,7 @@ export type Database = {
           request_id?: string | null
           status?: string
           stripe_session_id?: string | null
+          trn?: string | null
           updated_at?: string
         }
         Relationships: [
