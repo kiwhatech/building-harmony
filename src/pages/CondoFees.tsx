@@ -238,6 +238,11 @@ export default function CondoFees() {
   // ── Budget creation ──
   const handleCreateBudget = async () => {
     if (!selectedBuilding || newCategories.length === 0) return;
+    // Check: only 1 budget per building per year
+    if (budgets.some(b => b.building_id === selectedBuilding && b.year === budgetYear)) {
+      toast.error(`A budget for year ${budgetYear} already exists for this building.`);
+      return;
+    }
     setIsSubmitting(true);
     try {
       const totalAmount = newCategories.reduce((s, c) => s + (parseFloat(c.total) || 0), 0);
@@ -650,6 +655,12 @@ export default function CondoFees() {
                     <div className="space-y-2">
                       <Label>Year</Label>
                       <Input type="number" value={budgetYear} onChange={e => setBudgetYear(parseInt(e.target.value))} />
+                      {budgets.some(b => b.building_id === selectedBuilding && b.year === budgetYear) && (
+                        <p className="text-xs text-destructive flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" />
+                          A budget for {budgetYear} already exists for this building.
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
@@ -691,7 +702,7 @@ export default function CondoFees() {
                   </div>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setBudgetDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={handleCreateBudget} disabled={isSubmitting || newCategories.length === 0 || newCategories.some(c => !c.code || !c.millesimi_table_id)}>
+                    <Button onClick={handleCreateBudget} disabled={isSubmitting || newCategories.length === 0 || newCategories.some(c => !c.code || !c.millesimi_table_id) || budgets.some(b => b.building_id === selectedBuilding && b.year === budgetYear)}>
                       {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Create Budget
                     </Button>
                   </DialogFooter>
