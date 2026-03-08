@@ -285,14 +285,9 @@ export default function Fees() {
                         {fee.status !== 'paid' && (
                           <Button
                             size="sm"
-                            onClick={() => handlePayFee(fee.id)}
-                            disabled={payingFeeId === fee.id}
+                            onClick={() => handlePayFee(fee)}
                           >
-                            {payingFeeId === fee.id ? (
-                              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                            ) : (
-                              <CreditCard className="mr-1 h-3 w-3" />
-                            )}
+                            <CreditCard className="mr-1 h-3 w-3" />
                             Pay
                           </Button>
                         )}
@@ -305,6 +300,14 @@ export default function Fees() {
           </Card>
         )}
       </div>
+
+      <FeePaymentModal
+        open={payModalOpen}
+        onOpenChange={setPayModalOpen}
+        fee={selectedFee}
+        bankDetails={selectedBankDetails}
+        onPaymentSubmitted={fetchData}
+      />
     </AppLayout>
   );
 }
