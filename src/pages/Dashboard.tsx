@@ -21,6 +21,7 @@ import {
   CalendarDays,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ToPaySection } from '@/components/dashboard/ToPaySection';
 
 interface DashboardStats {
   buildings: number;
@@ -489,6 +490,9 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* To Pay Section */}
+        <ToPaySection />
 
         {/* Quick Actions for Residents */}
         <Card>
