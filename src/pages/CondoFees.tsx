@@ -238,6 +238,11 @@ export default function CondoFees() {
   // ── Budget creation ──
   const handleCreateBudget = async () => {
     if (!selectedBuilding || newCategories.length === 0) return;
+    // Check: only 1 budget per building per year
+    if (budgets.some(b => b.building_id === selectedBuilding && b.year === budgetYear)) {
+      toast.error(`A budget for year ${budgetYear} already exists for this building.`);
+      return;
+    }
     setIsSubmitting(true);
     try {
       const totalAmount = newCategories.reduce((s, c) => s + (parseFloat(c.total) || 0), 0);
