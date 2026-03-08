@@ -114,13 +114,31 @@ export default function CondoFees() {
   // ── Create millesimi table ──
   const handleCreateMTable = async () => {
     if (!selectedBuilding || !mtCode || !mtLabel) return;
+    if (buildingUnits.length === 0) {
+      toast.error('No units found for this building. Please add units first.');
+      return;
+    }
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from('millesimi_tables').insert({
+      const { data: tableData, error } = await supabase.from('millesimi_tables').insert({
         building_id: selectedBuilding, code: mtCode.toUpperCase().replace(/\s+/g, '_'), label: mtLabel,
-      });
+      }).select().single();
       if (error) throw error;
-      toast.success('Millesimi table created');
+
+      // Auto-create millesimi values for all building units (default: equally distributed to sum 1000)
+      const equalValue = Math.round((1000 / buildingUnits.length) * 100) / 100;
+      const unitValues = buildingUnits.map((u, idx) => ({
+        millesimi_table_id: tableData.id,
+        unit_id: u.id,
+        // Last unit gets the remainder to ensure exact sum of 1000
+        value: idx === buildingUnits.length - 1
+          ? Math.round((1000 - equalValue * (buildingUnits.length - 1)) * 100) / 100
+          : equalValue,
+      }));
+      const { error: valErr } = await supabase.from('millesimi_values').insert(unitValues);
+      if (valErr) throw valErr;
+
+      toast.success(`Millesimi table created with ${buildingUnits.length} units (equally distributed)`);
       setMtDialogOpen(false);
       setMtCode(''); setMtLabel('');
       fetchAll();
@@ -396,10 +414,21 @@ export default function CondoFees() {
                       <Label>Label</Label>
                       <Input value={mtLabel} onChange={e => setMtLabel(e.target.value)} placeholder="e.g. Spese generali" />
                     </div>
+                    <div className="rounded-lg border bg-muted/50 p-3 space-y-1">
+                      <p className="text-sm font-medium flex items-center gap-1.5">
+                        <Building2 className="h-3.5 w-3.5" />
+                        {buildingUnits.length} unit{buildingUnits.length !== 1 ? 's' : ''} will be included
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {buildingUnits.length > 0
+                          ? `Units: ${buildingUnits.map(u => u.unit_number).join(', ')} — millesimi will be equally distributed (1000 ÷ ${buildingUnits.length} = ${(1000 / buildingUnits.length).toFixed(2)} each)`
+                          : 'No units found for this building. Please add units first.'}
+                      </p>
+                    </div>
                   </div>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setMtDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={handleCreateMTable} disabled={isSubmitting || !mtCode || !mtLabel}>
+                    <Button onClick={handleCreateMTable} disabled={isSubmitting || !mtCode || !mtLabel || buildingUnits.length === 0}>
                       {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Create
                     </Button>
                   </DialogFooter>
