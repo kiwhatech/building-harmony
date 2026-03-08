@@ -814,53 +814,107 @@ export default function CondoFees() {
                             <CardTitle className="text-lg">Budget {budget.year}</CardTitle>
                             <CardDescription>Total: €{Number(budget.total_amount).toLocaleString()}</CardDescription>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary" className="text-base">{budget.year}</Badge>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button size="sm" variant="destructive"><Trash2 className="h-3 w-3" /></Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete budget {budget.year}?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    This will permanently delete the budget for {budget.year} and all its expense categories. This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDeleteBudget(budget.id)}>Delete</AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Category</TableHead>
-                              <TableHead>Code</TableHead>
-                              <TableHead>Millesimi Table</TableHead>
-                              <TableHead className="text-right">Amount (€)</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {cats.map(cat => {
-                              const mt = millesimiTables.find(m => m.id === cat.millesimi_table_id);
-                              return (
-                                <TableRow key={cat.id}>
-                                  <TableCell className="font-medium">{cat.label}</TableCell>
-                                  <TableCell><Badge variant="outline">{cat.code}</Badge></TableCell>
-                                  <TableCell className="text-muted-foreground">{mt?.label || '—'}</TableCell>
-                                  <TableCell className="text-right font-medium">€{Number(cat.total).toLocaleString()}</TableCell>
-                                </TableRow>
-                              );
-                            })}
-                          </TableBody>
-                        </Table>
-                      </CardContent>
+                           <div className="flex items-center gap-2">
+                             <Badge variant="secondary" className="text-base">{budget.year}</Badge>
+                             {editingBudget !== budget.id ? (
+                               <Button size="sm" variant="outline" onClick={() => initEditBudget(budget.id)}>
+                                 <Pencil className="mr-1 h-3 w-3" />Edit
+                               </Button>
+                             ) : (
+                               <>
+                                 <Button size="sm" onClick={saveBudgetEdits} disabled={savingBudget || editBudgetCats.length === 0 || editBudgetCats.some(c => !c.code || !c.millesimi_table_id)}>
+                                   <Save className="mr-1 h-3 w-3" />{savingBudget ? 'Saving...' : 'Save'}
+                                 </Button>
+                                 <Button size="sm" variant="outline" onClick={() => { setEditingBudget(null); setEditBudgetCats([]); }}>Cancel</Button>
+                               </>
+                             )}
+                             <AlertDialog>
+                               <AlertDialogTrigger asChild>
+                                 <Button size="sm" variant="destructive"><Trash2 className="h-3 w-3" /></Button>
+                               </AlertDialogTrigger>
+                               <AlertDialogContent>
+                                 <AlertDialogHeader>
+                                   <AlertDialogTitle>Delete budget {budget.year}?</AlertDialogTitle>
+                                   <AlertDialogDescription>
+                                     This will permanently delete the budget for {budget.year} and all its expense categories. This action cannot be undone.
+                                   </AlertDialogDescription>
+                                 </AlertDialogHeader>
+                                 <AlertDialogFooter>
+                                   <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                   <AlertDialogAction onClick={() => handleDeleteBudget(budget.id)}>Delete</AlertDialogAction>
+                                 </AlertDialogFooter>
+                               </AlertDialogContent>
+                             </AlertDialog>
+                           </div>
+                         </div>
+                       </CardHeader>
+                       <CardContent>
+                         {editingBudget === budget.id ? (
+                           <div className="space-y-3">
+                             <div className="flex items-center justify-between">
+                               <Label>Expense Categories</Label>
+                               <Button size="sm" variant="outline" onClick={() => setEditBudgetCats(prev => [...prev, { code: '', label: '', total: '0', millesimi_table_id: '' }])}>
+                                 <Plus className="mr-1 h-3 w-3" />Add Category
+                               </Button>
+                             </div>
+                             {editBudgetCats.map((cat, idx) => (
+                               <div key={idx} className="grid grid-cols-[1fr_1fr_1fr_1fr_auto] gap-2 items-end">
+                                 <div>
+                                   <Label className="text-xs">Label</Label>
+                                   <Input value={cat.label} onChange={e => setEditBudgetCats(prev => prev.map((c, i) => i === idx ? { ...c, label: e.target.value } : c))} />
+                                 </div>
+                                 <div>
+                                   <Label className="text-xs">Code</Label>
+                                   <Input value={cat.code} onChange={e => setEditBudgetCats(prev => prev.map((c, i) => i === idx ? { ...c, code: e.target.value } : c))} />
+                                 </div>
+                                 <div>
+                                   <Label className="text-xs">Millesimi Table</Label>
+                                   <Select value={cat.millesimi_table_id} onValueChange={v => setEditBudgetCats(prev => prev.map((c, i) => i === idx ? { ...c, millesimi_table_id: v } : c))}>
+                                     <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                                     <SelectContent>
+                                       {buildingMTables.map(mt => <SelectItem key={mt.id} value={mt.id}>{mt.label}</SelectItem>)}
+                                     </SelectContent>
+                                   </Select>
+                                 </div>
+                                 <div>
+                                   <Label className="text-xs">Amount (€)</Label>
+                                   <Input type="number" step="0.01" value={cat.total} onChange={e => setEditBudgetCats(prev => prev.map((c, i) => i === idx ? { ...c, total: e.target.value } : c))} />
+                                 </div>
+                                 <Button size="icon" variant="ghost" onClick={() => setEditBudgetCats(prev => prev.filter((_, i) => i !== idx))}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                               </div>
+                             ))}
+                             {editBudgetCats.length > 0 && (
+                               <div className="text-sm text-muted-foreground text-right">
+                                 Total: €{editBudgetCats.reduce((s, c) => s + (parseFloat(c.total) || 0), 0).toLocaleString()}
+                               </div>
+                             )}
+                           </div>
+                         ) : (
+                           <Table>
+                             <TableHeader>
+                               <TableRow>
+                                 <TableHead>Category</TableHead>
+                                 <TableHead>Code</TableHead>
+                                 <TableHead>Millesimi Table</TableHead>
+                                 <TableHead className="text-right">Amount (€)</TableHead>
+                               </TableRow>
+                             </TableHeader>
+                             <TableBody>
+                               {cats.map(cat => {
+                                 const mt = millesimiTables.find(m => m.id === cat.millesimi_table_id);
+                                 return (
+                                   <TableRow key={cat.id}>
+                                     <TableCell className="font-medium">{cat.label}</TableCell>
+                                     <TableCell><Badge variant="outline">{cat.code}</Badge></TableCell>
+                                     <TableCell className="text-muted-foreground">{mt?.label || '—'}</TableCell>
+                                     <TableCell className="text-right font-medium">€{Number(cat.total).toLocaleString()}</TableCell>
+                                   </TableRow>
+                                 );
+                               })}
+                             </TableBody>
+                           </Table>
+                         )}
+                       </CardContent>
                     </Card>
                   );
                 })}
