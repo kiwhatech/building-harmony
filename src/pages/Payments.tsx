@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -9,17 +10,20 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { CreditCard, Loader2, Search } from 'lucide-react';
+import { CreditCard, Loader2, Search, Wrench, DollarSign, Bell } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Payment {
   id: string;
-  fee_id: string;
+  fee_id: string | null;
+  request_id: string | null;
   amount: number;
   status: string;
   currency: string;
+  payment_type: string;
   payment_method: string | null;
   reference_number: string | null;
   gateway_payment_id: string | null;
@@ -40,11 +44,17 @@ const statusStyles: Record<string, string> = {
   canceled: 'bg-muted text-muted-foreground',
 };
 
+const typeIcons: Record<string, typeof DollarSign> = {
+  unit_fee: DollarSign,
+  intervention: Wrench,
+};
+
 export default function Payments() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
 
   useEffect(() => { fetchPayments(); }, []);
 
@@ -57,7 +67,6 @@ export default function Payments() {
 
       if (error) throw error;
 
-      // Fetch profile names for created_by
       const userIds = [...new Set((data || []).map(p => p.created_by).filter(Boolean))];
       let profileMap: Record<string, string> = {};
       if (userIds.length > 0) {
@@ -93,20 +102,23 @@ export default function Payments() {
       p.reference_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.gateway_payment_id?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  }), [payments, searchQuery, statusFilter]);
+    const matchesType = typeFilter === 'all' || p.payment_type === typeFilter;
+    return matchesSearch && matchesStatus && matchesType;
+  }), [payments, searchQuery, statusFilter, typeFilter]);
 
   const totals = useMemo(() => ({
     total: payments.length,
     succeeded: payments.filter(p => p.status === 'succeeded').reduce((s, p) => s + Number(p.amount), 0),
     pending: payments.filter(p => ['created', 'pending'].includes(p.status)).length,
+    interventions: payments.filter(p => p.payment_type === 'intervention').length,
+    unitFees: payments.filter(p => p.payment_type === 'unit_fee').length,
   }), [payments]);
 
   return (
     <AppLayout title="Payments" description="Payment transactions and history">
       <div className="space-y-6">
         {/* Summary */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground">Total Transactions</p>
@@ -127,6 +139,19 @@ export default function Payments() {
               <p className="text-2xl font-bold text-warning">{totals.pending}</p>
             </CardContent>
           </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">By Type</p>
+                  <div className="flex gap-3 mt-1">
+                    <span className="text-sm"><DollarSign className="inline h-3 w-3" /> {totals.unitFees} fees</span>
+                    <span className="text-sm"><Wrench className="inline h-3 w-3" /> {totals.interventions} interventions</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Filters */}
@@ -140,6 +165,16 @@ export default function Payments() {
               className="w-full pl-10 sm:w-64"
             />
           </div>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="unit_fee">Unit Fees</SelectItem>
+              <SelectItem value="intervention">Interventions</SelectItem>
+            </SelectContent>
+          </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full sm:w-40">
               <SelectValue placeholder="Status" />
@@ -174,6 +209,7 @@ export default function Payments() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Type</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>User</TableHead>
                   <TableHead>Amount</TableHead>
@@ -183,26 +219,35 @@ export default function Payments() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map(p => (
-                  <TableRow key={p.id}>
-                    <TableCell className="font-medium">{p.fee_description || '—'}</TableCell>
-                    <TableCell className="text-muted-foreground">{p.profile_name}</TableCell>
-                    <TableCell className="font-medium">
-                      {Number(p.amount).toLocaleString('it-IT', { style: 'currency', currency: p.currency || 'EUR' })}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className={statusStyles[p.status] || ''}>
-                        {p.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {format(new Date(p.created_at), 'MMM d, yyyy HH:mm')}
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground font-mono">
-                      {p.gateway_payment_id?.slice(0, 20) || p.reference_number?.slice(0, 20) || '—'}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {filtered.map(p => {
+                  const TypeIcon = typeIcons[p.payment_type] || CreditCard;
+                  return (
+                    <TableRow key={p.id}>
+                      <TableCell>
+                        <Badge variant="outline" className="gap-1">
+                          <TypeIcon className="h-3 w-3" />
+                          {p.payment_type === 'intervention' ? 'Intervention' : 'Fee'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-medium">{p.fee_description || '—'}</TableCell>
+                      <TableCell className="text-muted-foreground">{p.profile_name}</TableCell>
+                      <TableCell className="font-medium">
+                        {Number(p.amount).toLocaleString('it-IT', { style: 'currency', currency: p.currency || 'EUR' })}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className={statusStyles[p.status] || ''}>
+                          {p.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {format(new Date(p.created_at), 'MMM d, yyyy HH:mm')}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground font-mono">
+                        {p.gateway_payment_id?.slice(0, 20) || p.reference_number?.slice(0, 20) || '—'}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </Card>
