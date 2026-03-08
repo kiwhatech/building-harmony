@@ -10,9 +10,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import {
   Save, CheckCircle, XCircle, ArrowRightCircle, Trash2,
-  FileText, Search, CalendarCheck, CalendarIcon, Clock, Hourglass,
+  FileText, Search, CalendarCheck, CalendarIcon, Clock, Hourglass, Star, User,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useProviders } from '@/hooks/useProviders';
 import type { UnifiedRequestStatus } from '@/types/requests';
 import type { RequestFormData } from './RequestForm';
 

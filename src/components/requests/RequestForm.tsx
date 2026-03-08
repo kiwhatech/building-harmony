@@ -186,7 +186,34 @@ export function RequestForm({
             </div>
           </div>
 
-          {/* Cost info (read-only for non-admins, only on existing requests) */}
+          {/* Preferred Provider (resident - optional) */}
+          {canEdit && (
+            <div className="space-y-2">
+              <Label>Preferred Provider (optional)</Label>
+              <p className="text-xs text-muted-foreground">Select your preferred provider for this category</p>
+              <Select
+                value={form.preferred_provider_id || 'none'}
+                onValueChange={(v) => onUpdate('preferred_provider_id', v === 'none' ? '' : v)}
+              >
+                <SelectTrigger><SelectValue placeholder="No preference" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No preference</SelectItem>
+                  {categoryProviders.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      <span className="flex items-center gap-2">
+                        {p.name}
+                        <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
+                          <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                          {Number(p.rating).toFixed(1)}
+                        </span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           {!isNew && !isAdmin && (
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
