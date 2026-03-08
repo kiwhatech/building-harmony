@@ -414,10 +414,21 @@ export default function CondoFees() {
                       <Label>Label</Label>
                       <Input value={mtLabel} onChange={e => setMtLabel(e.target.value)} placeholder="e.g. Spese generali" />
                     </div>
+                    <div className="rounded-lg border bg-muted/50 p-3 space-y-1">
+                      <p className="text-sm font-medium flex items-center gap-1.5">
+                        <Building2 className="h-3.5 w-3.5" />
+                        {buildingUnits.length} unit{buildingUnits.length !== 1 ? 's' : ''} will be included
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {buildingUnits.length > 0
+                          ? `Units: ${buildingUnits.map(u => u.unit_number).join(', ')} — millesimi will be equally distributed (1000 ÷ ${buildingUnits.length} = ${(1000 / buildingUnits.length).toFixed(2)} each)`
+                          : 'No units found for this building. Please add units first.'}
+                      </p>
+                    </div>
                   </div>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setMtDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={handleCreateMTable} disabled={isSubmitting || !mtCode || !mtLabel}>
+                    <Button onClick={handleCreateMTable} disabled={isSubmitting || !mtCode || !mtLabel || buildingUnits.length === 0}>
                       {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Create
                     </Button>
                   </DialogFooter>
