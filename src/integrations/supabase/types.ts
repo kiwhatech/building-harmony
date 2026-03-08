@@ -719,6 +719,48 @@ export type Database = {
         }
         Relationships: []
       }
+      providers: {
+        Row: {
+          address: string | null
+          category: Database["public"]["Enums"]["provider_category"]
+          contact_email: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          phone: string | null
+          rating: number | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          category?: Database["public"]["Enums"]["provider_category"]
+          contact_email?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          phone?: string | null
+          rating?: number | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          category?: Database["public"]["Enums"]["provider_category"]
+          contact_email?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          rating?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       request_activities: {
         Row: {
           activity_type: string
@@ -845,6 +887,7 @@ export type Database = {
       }
       unified_requests: {
         Row: {
+          assigned_provider_id: string | null
           assigned_to: string | null
           attachment_urls: string[] | null
           building_id: string
@@ -856,6 +899,7 @@ export type Database = {
           estimated_amount: number | null
           id: string
           internal_notes: string | null
+          preferred_provider_id: string | null
           priority: number
           provider: string | null
           quotation_notes: string | null
@@ -868,6 +912,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_provider_id?: string | null
           assigned_to?: string | null
           attachment_urls?: string[] | null
           building_id: string
@@ -879,6 +924,7 @@ export type Database = {
           estimated_amount?: number | null
           id?: string
           internal_notes?: string | null
+          preferred_provider_id?: string | null
           priority?: number
           provider?: string | null
           quotation_notes?: string | null
@@ -891,6 +937,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_provider_id?: string | null
           assigned_to?: string | null
           attachment_urls?: string[] | null
           building_id?: string
@@ -902,6 +949,7 @@ export type Database = {
           estimated_amount?: number | null
           id?: string
           internal_notes?: string | null
+          preferred_provider_id?: string | null
           priority?: number
           provider?: string | null
           quotation_notes?: string | null
@@ -915,10 +963,24 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "unified_requests_assigned_provider_id_fkey"
+            columns: ["assigned_provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "unified_requests_building_id_fkey"
             columns: ["building_id"]
             isOneToOne: false
             referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unified_requests_preferred_provider_id_fkey"
+            columns: ["preferred_provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
             referencedColumns: ["id"]
           },
           {
@@ -1090,6 +1152,7 @@ export type Database = {
         | "estimate_approved"
         | "general"
       payment_status: "pending" | "paid" | "overdue"
+      provider_category: "general" | "plumbing" | "electrical" | "structural"
       request_status:
         | "requested"
         | "under_review"
@@ -1268,6 +1331,7 @@ export const Constants = {
         "general",
       ],
       payment_status: ["pending", "paid", "overdue"],
+      provider_category: ["general", "plumbing", "electrical", "structural"],
       request_status: [
         "requested",
         "under_review",
