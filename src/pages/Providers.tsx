@@ -113,9 +113,15 @@ export default function Providers() {
     setDialogOpen(true);
   };
 
+  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
   const handleSave = async () => {
     if (!form.name.trim()) {
       toast.error('Name is required');
+      return;
+    }
+    if (form.contact_email.trim() && !isValidEmail(form.contact_email.trim())) {
+      toast.error('Please enter a valid email address');
       return;
     }
     setSaving(true);
