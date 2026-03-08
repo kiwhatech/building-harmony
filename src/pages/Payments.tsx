@@ -210,8 +210,10 @@ export default function Payments() {
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="created">Created</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="pending_confirmation">Pending Confirmation</SelectItem>
               <SelectItem value="succeeded">Succeeded</SelectItem>
               <SelectItem value="failed">Failed</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
               <SelectItem value="refunded">Refunded</SelectItem>
               <SelectItem value="canceled">Canceled</SelectItem>
             </SelectContent>
