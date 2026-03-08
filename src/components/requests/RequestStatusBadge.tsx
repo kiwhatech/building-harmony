@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import {
   Clock, Search, FileText, CheckCircle2, CalendarCheck, CheckCheck, XCircle,
-  Send, Hourglass, Wrench, PenLine,
+  Send, Hourglass, Wrench, PenLine, CreditCard,
 } from 'lucide-react';
 import type { UnifiedRequestStatus } from '@/types/requests';
 
@@ -12,6 +12,7 @@ const config: Record<UnifiedRequestStatus, { label: string; icon: typeof Clock; 
   quoted: { label: 'Quoted', icon: FileText, className: 'bg-info/10 text-info border-info/30' },
   waiting_approval: { label: 'Waiting Approval', icon: Hourglass, className: 'bg-warning/10 text-warning border-warning/30' },
   intervention: { label: 'Intervention', icon: Wrench, className: 'bg-primary/10 text-primary border-primary/30' },
+  ready_for_payment: { label: 'Ready for Payment', icon: CreditCard, className: 'bg-warning/10 text-warning border-warning/30' },
   completed: { label: 'Completed', icon: CheckCheck, className: 'bg-success/10 text-success border-success/30' },
   rejected: { label: 'Rejected', icon: XCircle, className: 'bg-destructive/10 text-destructive border-destructive/30' },
 };

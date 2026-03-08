@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import {
   Save, CheckCircle, XCircle, ArrowRightCircle, Trash2,
-  FileText, Search, CalendarCheck, CalendarIcon, Clock, Hourglass, Star, User,
+  FileText, Search, CalendarCheck, CalendarIcon, Clock, Hourglass, Star, User, CreditCard,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useProviders } from '@/hooks/useProviders';
@@ -214,6 +214,15 @@ export function AdminActions({
 
           {request.status === 'intervention' && (
             <Button
+              onClick={() => onStatusChange('ready_for_payment')}
+              className="bg-warning hover:bg-warning/90 text-warning-foreground"
+            >
+              <CreditCard className="mr-2 h-4 w-4" /> Ready for Payment
+            </Button>
+          )}
+
+          {request.status === 'ready_for_payment' && (
+            <Button
               onClick={() => onStatusChange('completed')}
               className="bg-success hover:bg-success/90 text-success-foreground"
             >
@@ -221,7 +230,7 @@ export function AdminActions({
             </Button>
           )}
 
-          {['submitted', 'in_review', 'quoted', 'waiting_approval', 'intervention'].includes(request.status) && (
+          {['submitted', 'in_review', 'quoted', 'waiting_approval', 'intervention', 'ready_for_payment'].includes(request.status) && (
             <Button variant="destructive" onClick={() => onStatusChange('rejected')}>
               <XCircle className="mr-2 h-4 w-4" /> Reject
             </Button>
