@@ -245,7 +245,7 @@ export default function CondoFees() {
     finally { setSavingTableMeta(false); }
   };
 
-
+  const handleDeleteBudget = async (budgetId: string) => {
     try {
       // Delete categories first, then the budget
       await supabase.from('budget_categories').delete().eq('budget_id', budgetId);
