@@ -30,7 +30,7 @@ import {
 
 // ── Types ──────────────────────────────────────────────
 interface Building { id: string; name: string; }
-interface Unit { id: string; unit_number: string; building_id: string; }
+interface Unit { id: string; unit_number: string; building_id: string; area_sqft: number | null; }
 interface MillesimiTable { id: string; building_id: string; code: string; label: string; }
 interface MillesimiValue { id: string; millesimi_table_id: string; unit_id: string; value: number; }
 interface BudgetCategory { id: string; budget_id: string; millesimi_table_id: string; code: string; label: string; total: number; }
@@ -88,7 +88,7 @@ export default function CondoFees() {
     try {
       const [bRes, uRes, mtRes, mvRes, bbRes, bcRes] = await Promise.all([
         supabase.from('buildings').select('id, name').order('name'),
-        supabase.from('units').select('id, unit_number, building_id').order('unit_number'),
+        supabase.from('units').select('id, unit_number, building_id, area_sqft').order('unit_number'),
         supabase.from('millesimi_tables').select('*').order('code'),
         supabase.from('millesimi_values').select('*'),
         supabase.from('building_budgets').select('*').order('year', { ascending: false }),
@@ -132,19 +132,37 @@ export default function CondoFees() {
       }).select().single();
       if (error) throw error;
 
-      // Auto-create millesimi values for all building units (default: equally distributed to sum 1000)
-      const equalValue = Math.round((1000 / mtDialogUnits.length) * 100) / 100;
-      const unitValues = mtDialogUnits.map((u, idx) => ({
-        millesimi_table_id: tableData.id,
-        unit_id: u.id,
-        value: idx === mtDialogUnits.length - 1
-          ? Math.round((1000 - equalValue * (mtDialogUnits.length - 1)) * 100) / 100
-          : equalValue,
-      }));
+      // Distribute millesimi based on square meters if available, otherwise equally
+      const totalArea = mtDialogUnits.reduce((s, u) => s + (Number(u.area_sqft) || 0), 0);
+      const useArea = totalArea > 0 && mtDialogUnits.every(u => u.area_sqft && Number(u.area_sqft) > 0);
+
+      let unitValues: { millesimi_table_id: string; unit_id: string; value: number }[];
+
+      if (useArea) {
+        const rawValues = mtDialogUnits.map(u => ({
+          millesimi_table_id: tableData.id,
+          unit_id: u.id,
+          value: Math.round((Number(u.area_sqft) / totalArea) * 1000 * 100) / 100,
+        }));
+        // Adjust last unit for rounding
+        const sumSoFar = rawValues.slice(0, -1).reduce((s, v) => s + v.value, 0);
+        rawValues[rawValues.length - 1].value = Math.round((1000 - sumSoFar) * 100) / 100;
+        unitValues = rawValues;
+      } else {
+        const equalValue = Math.round((1000 / mtDialogUnits.length) * 100) / 100;
+        unitValues = mtDialogUnits.map((u, idx) => ({
+          millesimi_table_id: tableData.id,
+          unit_id: u.id,
+          value: idx === mtDialogUnits.length - 1
+            ? Math.round((1000 - equalValue * (mtDialogUnits.length - 1)) * 100) / 100
+            : equalValue,
+        }));
+      }
+
       const { error: valErr } = await supabase.from('millesimi_values').insert(unitValues);
       if (valErr) throw valErr;
 
-      toast.success(`Millesimi table created with ${mtDialogUnits.length} units (equally distributed)`);
+      toast.success(`Millesimi table created with ${mtDialogUnits.length} units (${useArea ? 'distributed by sqm' : 'equally distributed'})`);
       setMtDialogOpen(false);
       setMtCode(''); setMtLabel(''); setMtBuildingId('');
       // Switch page building selector to the chosen building
