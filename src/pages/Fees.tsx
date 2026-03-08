@@ -16,6 +16,7 @@ import {
   DollarSign, Loader2, Search, AlertTriangle, CheckCircle2, Clock, Calendar, CreditCard,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { FeePaymentModal } from '@/components/fees/FeePaymentModal';
 
 type PaymentStatus = 'pending' | 'paid' | 'overdue';
 
@@ -34,6 +35,7 @@ interface Fee {
 interface Building {
   id: string;
   name: string;
+  bank_details?: Record<string, string> | null;
 }
 
 const statusConfig: Record<PaymentStatus, { label: string; icon: typeof Clock; color: string }> = {
@@ -55,12 +57,12 @@ export default function Fees() {
   const fetchData = async () => {
     try {
       const [bRes, fRes] = await Promise.all([
-        supabase.from('buildings').select('id, name').order('name'),
+        supabase.from('buildings').select('id, name, bank_details').order('name'),
         supabase.from('fees').select(`*, buildings!inner(name), units(unit_number)`).order('due_date', { ascending: false }),
       ]);
       if (bRes.error) throw bRes.error;
       if (fRes.error) throw fRes.error;
-      setBuildings(bRes.data || []);
+      setBuildings((bRes.data || []) as any);
       setFees(
         (fRes.data || []).map((fee: any) => ({
           ...fee,
@@ -87,26 +89,19 @@ export default function Fees() {
     }
   };
 
-  const [payingFeeId, setPayingFeeId] = useState<string | null>(null);
+  const [payModalOpen, setPayModalOpen] = useState(false);
+  const [selectedFee, setSelectedFee] = useState<Fee | null>(null);
 
-  const handlePayFee = async (feeId: string) => {
-    setPayingFeeId(feeId);
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { paymentType: 'unit_fee', feeId },
-      });
-      if (error) throw error;
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      } else {
-        throw new Error('No checkout URL returned');
-      }
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to start payment');
-    } finally {
-      setPayingFeeId(null);
-    }
+  const handlePayFee = (fee: Fee) => {
+    setSelectedFee(fee);
+    setPayModalOpen(true);
   };
+
+  const selectedBankDetails = useMemo(() => {
+    if (!selectedFee) return null;
+    const building = buildings.find(b => b.id === selectedFee.building_id);
+    return (building?.bank_details as Record<string, string>) || null;
+  }, [selectedFee, buildings]);
 
   const filteredFees = useMemo(() => fees.filter(fee => {
     const matchesSearch =
@@ -290,14 +285,9 @@ export default function Fees() {
                         {fee.status !== 'paid' && (
                           <Button
                             size="sm"
-                            onClick={() => handlePayFee(fee.id)}
-                            disabled={payingFeeId === fee.id}
+                            onClick={() => handlePayFee(fee)}
                           >
-                            {payingFeeId === fee.id ? (
-                              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                            ) : (
-                              <CreditCard className="mr-1 h-3 w-3" />
-                            )}
+                            <CreditCard className="mr-1 h-3 w-3" />
                             Pay
                           </Button>
                         )}
@@ -310,6 +300,14 @@ export default function Fees() {
           </Card>
         )}
       </div>
+
+      <FeePaymentModal
+        open={payModalOpen}
+        onOpenChange={setPayModalOpen}
+        fee={selectedFee}
+        bankDetails={selectedBankDetails}
+        onPaymentSubmitted={fetchData}
+      />
     </AppLayout>
   );
 }
