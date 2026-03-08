@@ -65,7 +65,7 @@ export default function Buildings() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [editingBuilding, setEditingBuilding] = useState<Building | null>(null);
-
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   // Form state
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
