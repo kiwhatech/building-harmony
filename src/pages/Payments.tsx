@@ -10,10 +10,13 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { CreditCard, Loader2, Search, Wrench, DollarSign, Bell } from 'lucide-react';
+import { CreditCard, Loader2, Search, Wrench, DollarSign, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Payment {
@@ -55,6 +58,8 @@ export default function Payments() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [deletingPayment, setDeletingPayment] = useState<Payment | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => { fetchPayments(); }, []);
 
@@ -92,6 +97,26 @@ export default function Payments() {
       toast.error('Failed to load payments');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deletingPayment) return;
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('payments')
+        .delete()
+        .eq('id', deletingPayment.id);
+      if (error) throw error;
+      setPayments(prev => prev.filter(p => p.id !== deletingPayment.id));
+      toast.success('Payment deleted successfully');
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || 'Failed to delete payment');
+    } finally {
+      setIsDeleting(false);
+      setDeletingPayment(null);
     }
   };
 
@@ -216,6 +241,7 @@ export default function Payments() {
                   <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Reference</TableHead>
+                  <TableHead className="w-12" />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -245,6 +271,16 @@ export default function Payments() {
                       <TableCell className="text-xs text-muted-foreground font-mono">
                         {p.gateway_payment_id?.slice(0, 20) || p.reference_number?.slice(0, 20) || '—'}
                       </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => setDeletingPayment(p)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -253,6 +289,33 @@ export default function Payments() {
           </Card>
         )}
       </div>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={!!deletingPayment} onOpenChange={open => !open && setDeletingPayment(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Payment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this payment of{' '}
+              <span className="font-semibold">
+                {deletingPayment && Number(deletingPayment.amount).toLocaleString('it-IT', { style: 'currency', currency: deletingPayment.currency || 'EUR' })}
+              </span>
+              ? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }
