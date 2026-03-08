@@ -719,6 +719,50 @@ export type Database = {
         }
         Relationships: []
       }
+      request_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          id: string
+          message: string | null
+          metadata: Json | null
+          new_status: string | null
+          old_status: string | null
+          request_id: string
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          new_status?: string | null
+          old_status?: string | null
+          request_id: string
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          new_status?: string | null
+          old_status?: string | null
+          request_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "request_activities_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "unified_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       residents: {
         Row: {
           additional_info: string | null
@@ -814,6 +858,8 @@ export type Database = {
           internal_notes: string | null
           priority: number
           provider: string | null
+          quotation_notes: string | null
+          quotation_valid_until: string | null
           request_type: Database["public"]["Enums"]["unified_request_type"]
           scheduled_date: string | null
           status: Database["public"]["Enums"]["unified_request_status"]
@@ -835,6 +881,8 @@ export type Database = {
           internal_notes?: string | null
           priority?: number
           provider?: string | null
+          quotation_notes?: string | null
+          quotation_valid_until?: string | null
           request_type?: Database["public"]["Enums"]["unified_request_type"]
           scheduled_date?: string | null
           status?: Database["public"]["Enums"]["unified_request_status"]
@@ -856,6 +904,8 @@ export type Database = {
           internal_notes?: string | null
           priority?: number
           provider?: string | null
+          quotation_notes?: string | null
+          quotation_valid_until?: string | null
           request_type?: Database["public"]["Enums"]["unified_request_type"]
           scheduled_date?: string | null
           status?: Database["public"]["Enums"]["unified_request_status"]
