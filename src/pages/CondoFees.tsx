@@ -533,7 +533,7 @@ export default function CondoFees() {
                       <Input value={mtCode} onChange={e => setMtCode(e.target.value)} placeholder="e.g. GENERAL" />
                     </div>
                     <div className="space-y-2">
-                      <Label>Label</Label>
+                      <Label>Category</Label>
                       <Input value={mtLabel} onChange={e => setMtLabel(e.target.value)} placeholder="e.g. Spese generali" />
                     </div>
                     {mtBuildingId && (
