@@ -401,9 +401,9 @@ export default function CondoFees() {
                 <h3 className="text-lg font-semibold">Millesimi Tables</h3>
                 <p className="text-sm text-muted-foreground">Define millesimi tables and assign values to each unit.</p>
               </div>
-              <Dialog open={mtDialogOpen} onOpenChange={setMtDialogOpen}>
+               <Dialog open={mtDialogOpen} onOpenChange={(open) => { setMtDialogOpen(open); if (open) setMtBuildingId(selectedBuilding); }}>
                 <DialogTrigger asChild>
-                  <Button disabled={!selectedBuilding}><Plus className="mr-2 h-4 w-4" />New Table</Button>
+                  <Button><Plus className="mr-2 h-4 w-4" />New Table</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
@@ -412,6 +412,15 @@ export default function CondoFees() {
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
                     <div className="space-y-2">
+                      <Label>Building *</Label>
+                      <Select value={mtBuildingId} onValueChange={setMtBuildingId}>
+                        <SelectTrigger><SelectValue placeholder="Select a building" /></SelectTrigger>
+                        <SelectContent>
+                          {buildings.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
                       <Label>Code</Label>
                       <Input value={mtCode} onChange={e => setMtCode(e.target.value)} placeholder="e.g. GENERAL" />
                     </div>
@@ -419,21 +428,23 @@ export default function CondoFees() {
                       <Label>Label</Label>
                       <Input value={mtLabel} onChange={e => setMtLabel(e.target.value)} placeholder="e.g. Spese generali" />
                     </div>
-                    <div className="rounded-lg border bg-muted/50 p-3 space-y-1">
-                      <p className="text-sm font-medium flex items-center gap-1.5">
-                        <Building2 className="h-3.5 w-3.5" />
-                        {buildingUnits.length} unit{buildingUnits.length !== 1 ? 's' : ''} will be included
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {buildingUnits.length > 0
-                          ? `Units: ${buildingUnits.map(u => u.unit_number).join(', ')} — millesimi will be equally distributed (1000 ÷ ${buildingUnits.length} = ${(1000 / buildingUnits.length).toFixed(2)} each)`
-                          : 'No units found for this building. Please add units first.'}
-                      </p>
-                    </div>
+                    {mtBuildingId && (
+                      <div className="rounded-lg border bg-muted/50 p-3 space-y-1">
+                        <p className="text-sm font-medium flex items-center gap-1.5">
+                          <Building2 className="h-3.5 w-3.5" />
+                          {mtDialogUnits.length} unit{mtDialogUnits.length !== 1 ? 's' : ''} will be included
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {mtDialogUnits.length > 0
+                            ? `Units: ${mtDialogUnits.map(u => u.unit_number).join(', ')} — millesimi will be equally distributed (1000 ÷ ${mtDialogUnits.length} = ${(1000 / mtDialogUnits.length).toFixed(2)} each)`
+                            : 'No units found for this building. Please add units first.'}
+                        </p>
+                      </div>
+                    )}
                   </div>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setMtDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={handleCreateMTable} disabled={isSubmitting || !mtCode || !mtLabel || buildingUnits.length === 0}>
+                    <Button onClick={handleCreateMTable} disabled={isSubmitting || !mtCode || !mtLabel || !mtBuildingId || mtDialogUnits.length === 0}>
                       {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Create
                     </Button>
                   </DialogFooter>
