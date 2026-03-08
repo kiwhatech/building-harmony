@@ -84,6 +84,10 @@ export default function CondoFees() {
   const [editingTableMeta, setEditingTableMeta] = useState<Record<string, { code: string; label: string }>>({});
   const [savingTableMeta, setSavingTableMeta] = useState(false);
   const [isSavingFees, setIsSavingFees] = useState(false);
+  // Budget editing
+  const [editingBudget, setEditingBudget] = useState<string | null>(null);
+  const [editBudgetCats, setEditBudgetCats] = useState<{ id?: string; code: string; label: string; total: string; millesimi_table_id: string }[]>([]);
+  const [savingBudget, setSavingBudget] = useState(false);
 
   useEffect(() => { fetchAll(); }, []);
 
