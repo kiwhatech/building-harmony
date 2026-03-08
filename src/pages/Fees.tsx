@@ -252,7 +252,7 @@ export default function Fees() {
                           <div className="rounded-lg bg-primary/10 p-2">
                             <DollarSign className="h-4 w-4 text-primary" />
                           </div>
-                          <span className="font-medium">{fee.description}</span>
+                          <span className="font-medium">{new Date(fee.due_date).getFullYear()}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
