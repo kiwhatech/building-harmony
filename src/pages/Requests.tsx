@@ -243,7 +243,7 @@ function RequestList({
 }: {
   requests: RequestRow[];
   loading: boolean;
-  hasActiveFilters: boolean;
+  hasActiveFilters: string | boolean;
   clearFilters: () => void;
   navigate: (path: string) => void;
 }) {
