@@ -233,7 +233,7 @@ export default function Fees() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Description</TableHead>
+                  <TableHead>Year</TableHead>
                   <TableHead>Building / Unit</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Due Date</TableHead>
