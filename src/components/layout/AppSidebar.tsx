@@ -17,6 +17,7 @@ import {
   Calculator,
   Sparkles,
   HardHat,
+  CreditCard,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
@@ -53,6 +54,7 @@ const adminMainNavItems = [
 
 const adminManagementNavItems = [
   { icon: DollarSign, label: 'Fees', href: '/fees' },
+  { icon: CreditCard, label: 'Payments', href: '/payments' },
   { icon: Calculator, label: 'Fees Configuration', href: '/condo-fees' },
   { icon: Wrench, label: 'Requests', href: '/requests' },
   { icon: HardHat, label: 'Providers', href: '/providers' },
