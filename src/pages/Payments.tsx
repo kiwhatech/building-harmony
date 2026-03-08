@@ -264,15 +264,20 @@ export default function Payments() {
                         {Number(p.amount).toLocaleString('it-IT', { style: 'currency', currency: p.currency || 'EUR' })}
                       </TableCell>
                       <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          {p.payment_method === 'bank_transfer' ? 'Bank Transfer' : p.payment_method === 'stripe' ? 'Card/Wallet' : p.payment_method || '—'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
                         <Badge variant="secondary" className={statusStyles[p.status] || ''}>
-                          {p.status}
+                          {p.status === 'pending_confirmation' ? 'Pending Confirm' : p.status}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {format(new Date(p.created_at), 'MMM d, yyyy HH:mm')}
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground font-mono">
-                        {p.gateway_payment_id?.slice(0, 20) || p.reference_number?.slice(0, 20) || '—'}
+                        {(p as any).trn || p.gateway_payment_id?.slice(0, 20) || p.reference_number?.slice(0, 20) || '—'}
                       </TableCell>
                       <TableCell>
                         <Button
