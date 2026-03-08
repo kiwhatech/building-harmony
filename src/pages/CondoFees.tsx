@@ -114,13 +114,31 @@ export default function CondoFees() {
   // ── Create millesimi table ──
   const handleCreateMTable = async () => {
     if (!selectedBuilding || !mtCode || !mtLabel) return;
+    if (buildingUnits.length === 0) {
+      toast.error('No units found for this building. Please add units first.');
+      return;
+    }
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from('millesimi_tables').insert({
+      const { data: tableData, error } = await supabase.from('millesimi_tables').insert({
         building_id: selectedBuilding, code: mtCode.toUpperCase().replace(/\s+/g, '_'), label: mtLabel,
-      });
+      }).select().single();
       if (error) throw error;
-      toast.success('Millesimi table created');
+
+      // Auto-create millesimi values for all building units (default: equally distributed to sum 1000)
+      const equalValue = Math.round((1000 / buildingUnits.length) * 100) / 100;
+      const unitValues = buildingUnits.map((u, idx) => ({
+        millesimi_table_id: tableData.id,
+        unit_id: u.id,
+        // Last unit gets the remainder to ensure exact sum of 1000
+        value: idx === buildingUnits.length - 1
+          ? Math.round((1000 - equalValue * (buildingUnits.length - 1)) * 100) / 100
+          : equalValue,
+      }));
+      const { error: valErr } = await supabase.from('millesimi_values').insert(unitValues);
+      if (valErr) throw valErr;
+
+      toast.success(`Millesimi table created with ${buildingUnits.length} units (equally distributed)`);
       setMtDialogOpen(false);
       setMtCode(''); setMtLabel('');
       fetchAll();
