@@ -657,7 +657,26 @@ export default function CondoFees() {
                             <CardTitle className="text-lg">Budget {budget.year}</CardTitle>
                             <CardDescription>Total: €{Number(budget.total_amount).toLocaleString()}</CardDescription>
                           </div>
-                          <Badge variant="secondary" className="text-base">{budget.year}</Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="text-base">{budget.year}</Badge>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button size="sm" variant="destructive"><Trash2 className="h-3 w-3" /></Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete budget {budget.year}?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This will permanently delete the budget for {budget.year} and all its expense categories. This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDeleteBudget(budget.id)}>Delete</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         </div>
                       </CardHeader>
                       <CardContent>
