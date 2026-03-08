@@ -41,8 +41,10 @@ interface Payment {
 const statusStyles: Record<string, string> = {
   created: 'bg-muted text-muted-foreground',
   pending: 'bg-warning/10 text-warning',
+  pending_confirmation: 'bg-warning/10 text-warning',
   succeeded: 'bg-success/10 text-success',
   failed: 'bg-destructive/10 text-destructive',
+  rejected: 'bg-destructive/10 text-destructive',
   refunded: 'bg-accent text-accent-foreground',
   canceled: 'bg-muted text-muted-foreground',
 };
@@ -238,9 +240,10 @@ export default function Payments() {
                   <TableHead>Description</TableHead>
                   <TableHead>User</TableHead>
                   <TableHead>Amount</TableHead>
+                  <TableHead>Method</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
-                  <TableHead>Reference</TableHead>
+                  <TableHead>Reference / TRN</TableHead>
                   <TableHead className="w-12" />
                 </TableRow>
               </TableHeader>
