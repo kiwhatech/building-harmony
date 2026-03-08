@@ -25,6 +25,7 @@ export interface RequestFormData {
   scheduled_hour: string;
   scheduled_minute: string;
   preferred_provider_id: string;
+  assigned_provider_id: string;
 }
 
 interface Props {

@@ -44,6 +44,7 @@ export default function RequestDetail() {
     scheduled_hour: '09',
     scheduled_minute: '00',
     preferred_provider_id: '',
+    assigned_provider_id: '',
   });
 
   const isOwner = request?.created_by === user?.id;
@@ -101,6 +102,7 @@ export default function RequestDetail() {
       scheduled_hour: scheduledDate ? format(scheduledDate, 'HH') : '09',
       scheduled_minute: scheduledDate ? format(scheduledDate, 'mm') : '00',
       preferred_provider_id: d.preferred_provider_id || '',
+      assigned_provider_id: d.assigned_provider_id || '',
     });
     setLoading(false);
   };
