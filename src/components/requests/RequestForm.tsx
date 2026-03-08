@@ -221,7 +221,7 @@ export function RequestForm({
                 <Label>Estimated Amount</Label>
                 <Input
                   type="text"
-                  value={form.estimated_amount ? `€ ${parseFloat(form.estimated_amount).toFixed(2)}` : 'Not yet estimated'}
+                  value={form.estimated_amount ? Number(form.estimated_amount).toLocaleString('it-IT', { style: 'currency', currency: 'EUR' }) : 'Not yet estimated'}
                   disabled
                   className={!form.estimated_amount ? 'text-muted-foreground italic' : ''}
                 />
