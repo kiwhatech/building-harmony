@@ -14,6 +14,7 @@ import { AdminActions } from '@/components/requests/AdminActions';
 import { ResidentApproval } from '@/components/requests/ResidentApproval';
 import { RequestTimeline } from '@/components/requests/RequestTimeline';
 import { RequestCompletedCard } from '@/components/requests/RequestCompletedCard';
+import { InterventionPaymentCard } from '@/components/requests/InterventionPaymentCard';
 import type { UnifiedRequestType, MaintenanceCategory, UnifiedRequestStatus } from '@/types/requests';
 
 export default function RequestDetail() {
@@ -332,6 +333,14 @@ export default function RequestDetail() {
             estimatedAmount={form.estimated_amount}
             provider={form.provider}
             onStatusChange={handleStatusChange}
+          />
+        )}
+
+        {/* Resident Payment Card */}
+        {!isAdmin && isOwner && request?.status === 'ready_for_payment' && (
+          <InterventionPaymentCard
+            request={request}
+            estimatedAmount={form.estimated_amount}
           />
         )}
 

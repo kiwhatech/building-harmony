@@ -7,6 +7,7 @@ export type UnifiedRequestStatus =
   | 'quoted'
   | 'waiting_approval'
   | 'intervention'
+  | 'ready_for_payment'
   | 'completed'
   | 'rejected';
 
@@ -48,6 +49,7 @@ export const REQUEST_STATUSES: { value: UnifiedRequestStatus; label: string }[] 
   { value: 'quoted', label: 'Quoted' },
   { value: 'waiting_approval', label: 'Waiting Approval' },
   { value: 'intervention', label: 'Intervention' },
+  { value: 'ready_for_payment', label: 'Ready for Payment' },
   { value: 'completed', label: 'Completed' },
   { value: 'rejected', label: 'Rejected' },
 ];

@@ -32,7 +32,6 @@ serve(async (req) => {
     if (webhookSecret && signature) {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
     } else {
-      // Fallback for development: parse raw event
       event = JSON.parse(body) as Stripe.Event;
     }
 
@@ -43,6 +42,8 @@ serve(async (req) => {
         const session = event.data.object as Stripe.Checkout.Session;
         const paymentId = session.metadata?.payment_id;
         const feeId = session.metadata?.fee_id;
+        const requestId = session.metadata?.request_id;
+        const paymentType = session.metadata?.payment_type;
 
         if (paymentId) {
           await supabaseAdmin
@@ -56,14 +57,37 @@ serve(async (req) => {
             .eq("id", paymentId);
         }
 
-        if (feeId) {
+        if (paymentType === 'unit_fee' && feeId) {
           await supabaseAdmin
             .from("fees")
             .update({ status: "paid" })
             .eq("id", feeId);
         }
 
-        console.log(`Payment ${paymentId} succeeded for fee ${feeId}`);
+        if (paymentType === 'intervention' && requestId) {
+          // Mark request as completed after payment
+          await supabaseAdmin
+            .from("unified_requests")
+            .update({ status: "completed", completed_at: new Date().toISOString() })
+            .eq("id", requestId);
+
+          // Log activity
+          const userId = session.metadata?.user_id;
+          if (userId) {
+            await supabaseAdmin
+              .from("request_activities")
+              .insert({
+                request_id: requestId,
+                user_id: userId,
+                activity_type: "payment_completed",
+                old_status: "ready_for_payment",
+                new_status: "completed",
+                message: `Payment of €${(session.amount_total || 0) / 100} completed via Stripe`,
+              });
+          }
+        }
+
+        console.log(`Payment ${paymentId} succeeded (type: ${paymentType})`);
         break;
       }
 
@@ -85,28 +109,27 @@ serve(async (req) => {
 
       case "charge.refunded": {
         const charge = event.data.object as Stripe.Charge;
-        // Find payment by gateway_payment_id
         const { data: payments } = await supabaseAdmin
           .from("payments")
-          .select("id, fee_id")
+          .select("id, fee_id, request_id, payment_type")
           .eq("gateway_payment_id", charge.payment_intent as string)
           .limit(1);
 
         if (payments && payments.length > 0) {
+          const p = payments[0];
           await supabaseAdmin
             .from("payments")
-            .update({
-              status: "refunded",
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", payments[0].id);
+            .update({ status: "refunded", updated_at: new Date().toISOString() })
+            .eq("id", p.id);
 
-          // Revert fee status
-          if (payments[0].fee_id) {
+          if (p.payment_type === 'unit_fee' && p.fee_id) {
+            await supabaseAdmin.from("fees").update({ status: "pending" }).eq("id", p.fee_id);
+          }
+          if (p.payment_type === 'intervention' && p.request_id) {
             await supabaseAdmin
-              .from("fees")
-              .update({ status: "pending" })
-              .eq("id", payments[0].fee_id);
+              .from("unified_requests")
+              .update({ status: "ready_for_payment" })
+              .eq("id", p.request_id);
           }
         }
         break;
