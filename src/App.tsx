@@ -19,6 +19,7 @@ import CondoFees from "./pages/CondoFees";
 import Assistant from "./pages/Assistant";
 import Requests from "./pages/Requests";
 import RequestDetail from "./pages/RequestDetail";
+import Providers from "./pages/Providers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/requests" element={<Requests />} />
             <Route path="/requests/new" element={<RequestDetail />} />
             <Route path="/requests/:id" element={<RequestDetail />} />
+            <Route path="/providers" element={<Providers />} />
             <Route path="/maintenance" element={<Navigate to="/requests" replace />} />
             <Route path="/estimates" element={<Navigate to="/requests" replace />} />
             <Route path="/fees" element={<Fees />} />

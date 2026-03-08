@@ -16,6 +16,7 @@ import {
   FolderOpen,
   Calculator,
   Sparkles,
+  HardHat,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
@@ -54,6 +55,7 @@ const adminManagementNavItems = [
   { icon: DollarSign, label: 'Fees', href: '/fees' },
   { icon: Calculator, label: 'Fees Configuration', href: '/condo-fees' },
   { icon: Wrench, label: 'Requests', href: '/requests' },
+  { icon: HardHat, label: 'Providers', href: '/providers' },
 ];
 
 const adminCommunicationNavItems = [
