@@ -80,6 +80,9 @@ export default function CondoFees() {
   // Millesimi inline editing
   const [editingValues, setEditingValues] = useState<Record<string, Record<string, string>>>({});
   const [savingMillesimi, setSavingMillesimi] = useState(false);
+  // Millesimi table metadata editing (label & code)
+  const [editingTableMeta, setEditingTableMeta] = useState<Record<string, { code: string; label: string }>>({});
+  const [savingTableMeta, setSavingTableMeta] = useState(false);
   const [isSavingFees, setIsSavingFees] = useState(false);
 
   useEffect(() => { fetchAll(); }, []);
