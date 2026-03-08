@@ -30,7 +30,12 @@ import {
   MoreVertical,
   Pencil,
   Trash2,
+  LayoutGrid,
+  List,
 } from 'lucide-react';
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '@/components/ui/table';
 import {
   DropdownMenu,
   DropdownMenuContent,
