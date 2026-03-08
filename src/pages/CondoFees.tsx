@@ -119,8 +119,19 @@ export default function CondoFees() {
   const mtDialogUnits = useMemo(() => units.filter(u => u.building_id === mtBuildingId), [units, mtBuildingId]);
 
   // ── Create millesimi table ──
+  // Buildings that don't have a millesimi table yet
+  const buildingsWithoutMTable = useMemo(() => {
+    const buildingIdsWithTable = new Set(millesimiTables.map(mt => mt.building_id));
+    return buildings.filter(b => !buildingIdsWithTable.has(b.id));
+  }, [buildings, millesimiTables]);
+
   const handleCreateMTable = async () => {
     if (!mtBuildingId || !mtCode || !mtLabel) return;
+    // Check if building already has a millesimi table
+    if (millesimiTables.some(mt => mt.building_id === mtBuildingId)) {
+      toast.error('This building already has a millesimi table. Only one table per building is allowed.');
+      return;
+    }
     if (mtDialogUnits.length === 0) {
       toast.error('No units found for this building. Please add units first.');
       return;
@@ -448,7 +459,7 @@ export default function CondoFees() {
                       <Select value={mtBuildingId} onValueChange={setMtBuildingId}>
                         <SelectTrigger><SelectValue placeholder="Select a building" /></SelectTrigger>
                         <SelectContent>
-                          {buildings.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                          {buildingsWithoutMTable.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     </div>
