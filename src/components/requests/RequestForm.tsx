@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Button } from '@/components/ui/button';
-import { Save, Send, Trash2, FileText, Wrench } from 'lucide-react';
+import { Save, Send, Trash2, FileText, Wrench, Star } from 'lucide-react';
 import { CATEGORIES, PRIORITIES, REQUEST_TYPES } from '@/types/requests';
+import { useProviders } from '@/hooks/useProviders';
 import type { UnifiedRequestType, MaintenanceCategory } from '@/types/requests';
 
 export interface RequestFormData {
@@ -23,6 +24,7 @@ export interface RequestFormData {
   scheduled_date: Date | null;
   scheduled_hour: string;
   scheduled_minute: string;
+  preferred_provider_id: string;
 }
 
 interface Props {
@@ -41,6 +43,7 @@ interface Props {
 export function RequestForm({
   form, onUpdate, buildings, units, canEdit, isNew, isAdmin, saving, onSave, onDelete,
 }: Props) {
+  const { providers: categoryProviders } = useProviders(form.category);
   return (
     <>
       {/* Request Type Selection (only on new) */}
