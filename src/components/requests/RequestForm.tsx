@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Button } from '@/components/ui/button';
-import { Save, Send, Trash2, FileText, Wrench } from 'lucide-react';
+import { Save, Send, Trash2, FileText, Wrench, Star } from 'lucide-react';
 import { CATEGORIES, PRIORITIES, REQUEST_TYPES } from '@/types/requests';
+import { useProviders } from '@/hooks/useProviders';
 import type { UnifiedRequestType, MaintenanceCategory } from '@/types/requests';
 
 export interface RequestFormData {
@@ -23,6 +24,8 @@ export interface RequestFormData {
   scheduled_date: Date | null;
   scheduled_hour: string;
   scheduled_minute: string;
+  preferred_provider_id: string;
+  assigned_provider_id: string;
 }
 
 interface Props {
@@ -41,6 +44,7 @@ interface Props {
 export function RequestForm({
   form, onUpdate, buildings, units, canEdit, isNew, isAdmin, saving, onSave, onDelete,
 }: Props) {
+  const { providers: categoryProviders } = useProviders(form.category);
   return (
     <>
       {/* Request Type Selection (only on new) */}
@@ -183,7 +187,34 @@ export function RequestForm({
             </div>
           </div>
 
-          {/* Cost info (read-only for non-admins, only on existing requests) */}
+          {/* Preferred Provider (resident - optional) */}
+          {canEdit && (
+            <div className="space-y-2">
+              <Label>Preferred Provider (optional)</Label>
+              <p className="text-xs text-muted-foreground">Select your preferred provider for this category</p>
+              <Select
+                value={form.preferred_provider_id || 'none'}
+                onValueChange={(v) => onUpdate('preferred_provider_id', v === 'none' ? '' : v)}
+              >
+                <SelectTrigger><SelectValue placeholder="No preference" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No preference</SelectItem>
+                  {categoryProviders.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      <span className="flex items-center gap-2">
+                        {p.name}
+                        <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
+                          <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                          {Number(p.rating).toFixed(1)}
+                        </span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           {!isNew && !isAdmin && (
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">

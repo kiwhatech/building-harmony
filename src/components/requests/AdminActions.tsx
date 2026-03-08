@@ -10,9 +10,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import {
   Save, CheckCircle, XCircle, ArrowRightCircle, Trash2,
-  FileText, Search, CalendarCheck, CalendarIcon, Clock, Hourglass,
+  FileText, Search, CalendarCheck, CalendarIcon, Clock, Hourglass, Star, User,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useProviders } from '@/hooks/useProviders';
 import type { UnifiedRequestStatus } from '@/types/requests';
 import type { RequestFormData } from './RequestForm';
 
@@ -30,6 +31,12 @@ export function AdminActions({
   request, form, onUpdate, onStatusChange, onConvertToIntervention, onSaveAdmin, onDelete,
 }: Props) {
   const showScheduler = ['in_review', 'quoted', 'waiting_approval', 'intervention'].includes(request.status);
+  const { providers } = useProviders(form.category);
+
+  // Find preferred provider name
+  const preferredProvider = request.preferred_provider_id
+    ? providers.find((p: any) => p.id === request.preferred_provider_id)
+    : null;
 
   return (
     <Card>
@@ -62,11 +69,43 @@ export function AdminActions({
           </div>
           <div className="space-y-2">
             <Label>Assign Provider / Vendor</Label>
-            <Input
-              value={form.provider}
-              onChange={(e) => onUpdate('provider', e.target.value)}
-              placeholder="Staff or vendor name"
-            />
+            {preferredProvider && (
+              <div className="flex items-center gap-1.5 text-xs text-primary mb-1 p-1.5 rounded bg-primary/5 border border-primary/20">
+                <User className="h-3 w-3" />
+                Resident prefers: <span className="font-medium">{preferredProvider.name}</span>
+                <span className="flex items-center gap-0.5 ml-1">
+                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                  {Number(preferredProvider.rating).toFixed(1)}
+                </span>
+              </div>
+            )}
+            <Select
+              value={form.assigned_provider_id || 'none'}
+              onValueChange={(v) => {
+                const selected = providers.find((p: any) => p.id === v);
+                onUpdate('assigned_provider_id', v === 'none' ? '' : v);
+                onUpdate('provider', selected ? selected.name : '');
+              }}
+            >
+              <SelectTrigger><SelectValue placeholder="Select provider" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No provider assigned</SelectItem>
+                {providers.map((p: any) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    <span className="flex items-center gap-2">
+                      {p.name}
+                      {p.id === request.preferred_provider_id && (
+                        <span className="text-xs text-primary">(preferred)</span>
+                      )}
+                      <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
+                        <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                        {Number(p.rating).toFixed(1)}
+                      </span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
