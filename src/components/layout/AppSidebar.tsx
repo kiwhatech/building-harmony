@@ -53,9 +53,9 @@ const adminMainNavItems = [
 ];
 
 const adminManagementNavItems = [
+  { icon: Calculator, label: 'Fees Configuration', href: '/condo-fees' },
   { icon: DollarSign, label: 'Fees', href: '/fees' },
   { icon: CreditCard, label: 'Payments', href: '/payments' },
-  { icon: Calculator, label: 'Fees Configuration', href: '/condo-fees' },
   { icon: Wrench, label: 'Requests', href: '/requests' },
   { icon: HardHat, label: 'Providers', href: '/providers' },
 ];
