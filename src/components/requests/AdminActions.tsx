@@ -60,12 +60,18 @@ export function AdminActions({
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label>Estimated Amount (€)</Label>
-            <Input
-              type="number"
-              value={form.estimated_amount}
-              onChange={(e) => onUpdate('estimated_amount', e.target.value)}
-              placeholder="0.00"
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">€</span>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                value={form.estimated_amount}
+                onChange={(e) => onUpdate('estimated_amount', e.target.value)}
+                placeholder="0,00"
+                className="pl-8"
+              />
+            </div>
           </div>
           <div className="space-y-2">
             <Label>Assign Provider / Vendor</Label>
