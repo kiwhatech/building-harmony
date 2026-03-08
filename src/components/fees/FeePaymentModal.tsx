@@ -144,7 +144,7 @@ export function FeePaymentModal({ open, onOpenChange, fee, bankDetails, onPaymen
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Pay Fee</DialogTitle>
           <DialogDescription>Choose your payment method</DialogDescription>
