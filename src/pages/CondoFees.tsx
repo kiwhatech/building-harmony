@@ -655,6 +655,12 @@ export default function CondoFees() {
                     <div className="space-y-2">
                       <Label>Year</Label>
                       <Input type="number" value={budgetYear} onChange={e => setBudgetYear(parseInt(e.target.value))} />
+                      {budgets.some(b => b.building_id === selectedBuilding && b.year === budgetYear) && (
+                        <p className="text-xs text-destructive flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" />
+                          A budget for {budgetYear} already exists for this building.
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
@@ -696,7 +702,7 @@ export default function CondoFees() {
                   </div>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setBudgetDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={handleCreateBudget} disabled={isSubmitting || newCategories.length === 0 || newCategories.some(c => !c.code || !c.millesimi_table_id)}>
+                    <Button onClick={handleCreateBudget} disabled={isSubmitting || newCategories.length === 0 || newCategories.some(c => !c.code || !c.millesimi_table_id) || budgets.some(b => b.building_id === selectedBuilding && b.year === budgetYear)}>
                       {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Create Budget
                     </Button>
                   </DialogFooter>
