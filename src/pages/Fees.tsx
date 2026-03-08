@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -13,7 +13,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
-  DollarSign, Loader2, Search, AlertTriangle, CheckCircle2, Clock, Calendar,
+  DollarSign, Loader2, Search, AlertTriangle, CheckCircle2, Clock, Calendar, CreditCard,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -84,6 +84,27 @@ export default function Fees() {
       fetchData();
     } catch (error: any) {
       toast.error(error.message || 'Failed to update status');
+    }
+  };
+
+  const [payingFeeId, setPayingFeeId] = useState<string | null>(null);
+
+  const handlePayFee = async (feeId: string) => {
+    setPayingFeeId(feeId);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { feeId },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to start payment');
+    } finally {
+      setPayingFeeId(null);
     }
   };
 
@@ -217,6 +238,7 @@ export default function Fees() {
                   <TableHead>Amount</TableHead>
                   <TableHead>Due Date</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -263,6 +285,22 @@ export default function Fees() {
                             ))}
                           </SelectContent>
                         </Select>
+                      </TableCell>
+                      <TableCell>
+                        {fee.status !== 'paid' && (
+                          <Button
+                            size="sm"
+                            onClick={() => handlePayFee(fee.id)}
+                            disabled={payingFeeId === fee.id}
+                          >
+                            {payingFeeId === fee.id ? (
+                              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                            ) : (
+                              <CreditCard className="mr-1 h-3 w-3" />
+                            )}
+                            Pay
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   );
