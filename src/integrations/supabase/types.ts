@@ -650,34 +650,52 @@ export type Database = {
           amount: number
           created_at: string
           created_by: string | null
+          currency: string
           fee_id: string
+          gateway_payment_id: string | null
           id: string
+          metadata: Json | null
           notes: string | null
           payment_date: string
           payment_method: string | null
           reference_number: string | null
+          status: string
+          stripe_session_id: string | null
+          updated_at: string
         }
         Insert: {
           amount: number
           created_at?: string
           created_by?: string | null
+          currency?: string
           fee_id: string
+          gateway_payment_id?: string | null
           id?: string
+          metadata?: Json | null
           notes?: string | null
           payment_date?: string
           payment_method?: string | null
           reference_number?: string | null
+          status?: string
+          stripe_session_id?: string | null
+          updated_at?: string
         }
         Update: {
           amount?: number
           created_at?: string
           created_by?: string | null
+          currency?: string
           fee_id?: string
+          gateway_payment_id?: string | null
           id?: string
+          metadata?: Json | null
           notes?: string | null
           payment_date?: string
           payment_method?: string | null
           reference_number?: string | null
+          status?: string
+          stripe_session_id?: string | null
+          updated_at?: string
         }
         Relationships: [
           {

@@ -20,6 +20,8 @@ import Assistant from "./pages/Assistant";
 import Requests from "./pages/Requests";
 import RequestDetail from "./pages/RequestDetail";
 import Providers from "./pages/Providers";
+import Payments from "./pages/Payments";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +48,8 @@ const App = () => (
             <Route path="/maintenance" element={<Navigate to="/requests" replace />} />
             <Route path="/estimates" element={<Navigate to="/requests" replace />} />
             <Route path="/fees" element={<Fees />} />
+            <Route path="/payments" element={<Payments />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/announcements" element={<Announcements />} />
             <Route path="/documents" element={<Documents />} />
