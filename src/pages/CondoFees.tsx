@@ -444,9 +444,11 @@ export default function CondoFees() {
                 <h3 className="text-lg font-semibold">Millesimi Tables</h3>
                 <p className="text-sm text-muted-foreground">Define millesimi tables and assign values to each unit.</p>
               </div>
-               <Dialog open={mtDialogOpen} onOpenChange={(open) => { setMtDialogOpen(open); if (open) setMtBuildingId(selectedBuilding); }}>
+               <Dialog open={mtDialogOpen} onOpenChange={(open) => { setMtDialogOpen(open); if (open) { const defaultBld = buildingsWithoutMTable.find(b => b.id === selectedBuilding) ? selectedBuilding : (buildingsWithoutMTable[0]?.id || ''); setMtBuildingId(defaultBld); } }}>
                 <DialogTrigger asChild>
-                  <Button><Plus className="mr-2 h-4 w-4" />New Table</Button>
+                  <Button disabled={buildingsWithoutMTable.length === 0}>
+                    <Plus className="mr-2 h-4 w-4" />{buildingsWithoutMTable.length === 0 ? 'All buildings have a table' : 'New Table'}
+                  </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
