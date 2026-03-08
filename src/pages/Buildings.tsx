@@ -398,81 +398,155 @@ export default function Buildings() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredBuildings.map((building) => (
-              <Card key={building.id} className="transition-all hover:shadow-md">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="rounded-lg bg-primary/10 p-2">
-                        <Building2 className="h-5 w-5 text-primary" />
+          viewMode === 'grid' ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {filteredBuildings.map((building) => (
+                <Card key={building.id} className="transition-all hover:shadow-md">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-lg bg-primary/10 p-2">
+                          <Building2 className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">{building.name}</CardTitle>
+                          <CardDescription className="flex items-center gap-1 mt-1">
+                            <MapPin className="h-3 w-3" />
+                            {building.city && building.state
+                              ? `${building.city}, ${building.state}`
+                              : building.address}
+                          </CardDescription>
+                        </div>
                       </div>
-                      <div>
-                        <CardTitle className="text-lg">{building.name}</CardTitle>
-                        <CardDescription className="flex items-center gap-1 mt-1">
-                          <MapPin className="h-3 w-3" />
-                          {building.city && building.state
-                            ? `${building.city}, ${building.state}`
-                            : building.address}
-                        </CardDescription>
+                      {isAdmin && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => openEditDialog(building)}>
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDelete(building.id)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <p className="text-sm text-muted-foreground">{building.address}</p>
+                      
+                      <div className="flex items-center gap-4">
+                        <Badge variant="secondary" className="gap-1">
+                          <Home className="h-3 w-3" />
+                          {building.units_count} units
+                        </Badge>
                       </div>
-                    </div>
-                    {isAdmin && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => openEditDialog(building)}>
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleDelete(building.id)}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <p className="text-sm text-muted-foreground">{building.address}</p>
-                    
-                    <div className="flex items-center gap-4">
-                      <Badge variant="secondary" className="gap-1">
-                        <Home className="h-3 w-3" />
-                        {building.units_count} units
-                      </Badge>
-                    </div>
 
-                    {(building.phone || building.email) && (
-                      <div className="space-y-1 pt-2 border-t">
-                        {building.phone && (
-                          <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Phone className="h-3 w-3" />
-                            {building.phone}
-                          </p>
-                        )}
-                        {building.email && (
-                          <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Mail className="h-3 w-3" />
-                            {building.email}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                      {(building.phone || building.email) && (
+                        <div className="space-y-1 pt-2 border-t">
+                          {building.phone && (
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Phone className="h-3 w-3" />
+                              {building.phone}
+                            </p>
+                          )}
+                          {building.email && (
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Mail className="h-3 w-3" />
+                              {building.email}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Address</TableHead>
+                        <TableHead>City</TableHead>
+                        <TableHead>Units</TableHead>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>Email</TableHead>
+                        {isAdmin && <TableHead className="w-[50px]" />}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredBuildings.map((building) => (
+                        <TableRow key={building.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div className="rounded-md bg-primary/10 p-1.5 shrink-0">
+                                <Building2 className="h-4 w-4 text-primary" />
+                              </div>
+                              <span className="font-medium">{building.name}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">{building.address}</TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {building.city && building.state
+                              ? `${building.city}, ${building.state}`
+                              : building.city || '—'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="gap-1">
+                              <Home className="h-3 w-3" />
+                              {building.units_count}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">{building.phone || '—'}</TableCell>
+                          <TableCell className="text-muted-foreground">{building.email || '—'}</TableCell>
+                          {isAdmin && (
+                            <TableCell>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => openEditDialog(building)}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => handleDelete(building.id)}
+                                    className="text-destructive"
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          )
         )}
       </div>
     </AppLayout>
