@@ -227,7 +227,25 @@ export default function CondoFees() {
     finally { setSavingMillesimi(false); }
   };
 
-  const handleDeleteBudget = async (budgetId: string) => {
+  // ── Save millesimi table metadata (label & code) ──
+  const saveTableMeta = async (tableId: string) => {
+    const meta = editingTableMeta[tableId];
+    if (!meta || !meta.code || !meta.label) return;
+    setSavingTableMeta(true);
+    try {
+      const { error } = await supabase.from('millesimi_tables').update({
+        code: meta.code.toUpperCase().replace(/\s+/g, '_'),
+        label: meta.label,
+      }).eq('id', tableId);
+      if (error) throw error;
+      toast.success('Table updated');
+      setEditingTableMeta(prev => { const n = { ...prev }; delete n[tableId]; return n; });
+      fetchAll();
+    } catch (e: any) { toast.error(e.message || 'Failed to update table'); }
+    finally { setSavingTableMeta(false); }
+  };
+
+
     try {
       // Delete categories first, then the budget
       await supabase.from('budget_categories').delete().eq('budget_id', budgetId);
