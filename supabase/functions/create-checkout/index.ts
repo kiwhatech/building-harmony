@@ -44,7 +44,7 @@ serve(async (req) => {
     if (paymentType === 'unit_fee') {
       if (!feeId) throw new Error("feeId is required for unit_fee payments");
 
-      const { data: fee, error: feeError } = await supabaseClient
+      const { data: fee, error: feeError } = await supabaseAdmin
         .from("fees")
         .select("id, description, amount, status")
         .eq("id", feeId)
@@ -60,7 +60,7 @@ serve(async (req) => {
       // intervention payment
       if (!requestId) throw new Error("requestId is required for intervention payments");
 
-      const { data: request, error: reqError } = await supabaseClient
+      const { data: request, error: reqError } = await supabaseAdmin
         .from("unified_requests")
         .select("id, title, estimated_amount, status")
         .eq("id", requestId)
