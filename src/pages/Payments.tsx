@@ -132,11 +132,14 @@ export default function Payments() {
   };
 
   const filtered = useMemo(() => payments.filter(p => {
+    const q = searchQuery.toLowerCase();
     const matchesSearch =
-      p.fee_description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.profile_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.reference_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.gateway_payment_id?.toLowerCase().includes(searchQuery.toLowerCase());
+      p.fee_description?.toLowerCase().includes(q) ||
+      p.request_title?.toLowerCase().includes(q) ||
+      p.profile_name?.toLowerCase().includes(q) ||
+      p.reference_number?.toLowerCase().includes(q) ||
+      p.trn?.toLowerCase().includes(q) ||
+      p.gateway_payment_id?.toLowerCase().includes(q);
     const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
     const matchesType = typeFilter === 'all' || p.payment_type === typeFilter;
     return matchesSearch && matchesStatus && matchesType;
