@@ -166,7 +166,7 @@ export default function Fees() {
                     {totals.paid.toLocaleString("it-IT", { style: "currency", currency: "EUR" })}
                   </p>
                 </div>
-                <CheckCircle2 className="h-8 w-8 text-success" />
+                <CheckCircle2 className="h-6 w-6 text-success" />
               </div>
             </CardContent>
           </Card>
