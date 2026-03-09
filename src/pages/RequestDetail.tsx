@@ -16,6 +16,7 @@ import { RequestTimeline } from '@/components/requests/RequestTimeline';
 import { RequestCompletedCard } from '@/components/requests/RequestCompletedCard';
 import { InterventionPaymentCard } from '@/components/requests/InterventionPaymentCard';
 import { RequestPaymentStatus } from '@/components/requests/RequestPaymentStatus';
+import { ProviderRating } from '@/components/requests/ProviderRating';
 import type { UnifiedRequestType, MaintenanceCategory, UnifiedRequestStatus } from '@/types/requests';
 
 export default function RequestDetail() {
