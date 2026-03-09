@@ -232,6 +232,32 @@ export default function RequestDetail() {
         await logActivity(id!, 'quotation_rejected', { message: 'Quotation was rejected' });
       }
 
+      // Auto-create payment record when moving to ready_for_payment
+      if (newStatus === 'ready_for_payment') {
+        const amount = form.estimated_amount ? parseFloat(form.estimated_amount) : 0;
+        if (amount > 0) {
+          const { error: payErr } = await supabase.from('payments').insert({
+            request_id: id,
+            amount,
+            status: 'pending_confirmation',
+            payment_type: 'intervention',
+            currency: 'EUR',
+            created_by: user?.id,
+            metadata: { title: request.title, request_type: request.request_type },
+          } as any);
+          if (payErr) console.error('Failed to create payment record:', payErr);
+        }
+      }
+
+      // Auto-mark payment as succeeded when completing request
+      if (newStatus === 'completed') {
+        await supabase
+          .from('payments')
+          .update({ status: 'succeeded', updated_at: new Date().toISOString() })
+          .eq('request_id', id)
+          .neq('status', 'succeeded');
+      }
+
       toast.success(`Status changed to ${newStatus.replace(/_/g, ' ')}`);
       fetchRequest();
     }
