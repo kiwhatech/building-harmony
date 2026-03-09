@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Building2, CheckCircle2, Users, DollarSign, Wrench, Bell } from 'lucide-react';
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Building2, CheckCircle2, Users, DollarSign, Wrench, Bell } from "lucide-react";
 
 const Index = () => {
   return (
@@ -12,16 +12,16 @@ const Index = () => {
           <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-primary text-primary-foreground shadow-lg">
             <Building2 className="h-10 w-10" />
           </div>
-          
+
           <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
             Welcome to <span className="text-primary">Harmony</span>
           </h1>
-          
+
           <p className="mb-8 max-w-2xl text-lg text-muted-foreground sm:text-xl">
-            The all-in-one platform for condominium management. Simplify fees, maintenance, 
-            and communication between administrators, residents, and service providers.
+            The all-in-one platform for condominium management. Simplify fees, maintenance, and communication between
+            administrators, residents, and service providers.
           </p>
-          
+
           <div className="flex flex-col gap-4 sm:flex-row">
             <Button asChild size="lg" className="text-lg px-8">
               <Link to="/auth">Get Started</Link>
@@ -60,7 +60,8 @@ const Index = () => {
             </div>
             <h3 className="mb-2 text-xl font-semibold">Maintenance Tracking</h3>
             <p className="text-muted-foreground">
-              Submit and track maintenance requests. Manage estimates from service providers with full status visibility.
+              Submit and track maintenance requests. Manage estimates from service providers with full status
+              visibility.
             </p>
           </div>
 
@@ -97,9 +98,7 @@ const Index = () => {
 
         {/* CTA Section */}
         <div className="mt-24 rounded-3xl bg-primary p-8 text-center text-primary-foreground sm:p-12">
-          <h2 className="mb-4 text-3xl font-bold sm:text-4xl">
-            Ready to streamline your condo management?
-          </h2>
+          <h2 className="mb-4 text-3xl font-bold sm:text-4xl">Ready to streamline your building management?</h2>
           <p className="mb-8 text-lg opacity-90">
             Join thousands of condominiums already using Harmony to simplify their operations.
           </p>
