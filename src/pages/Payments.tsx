@@ -34,8 +34,13 @@ interface Payment {
   created_at: string;
   created_by: string | null;
   notes: string | null;
+  trn: string | null;
   profile_name?: string;
   fee_description?: string;
+  request_title?: string;
+  request_type?: string;
+  request_category?: string;
+  request_scheduled_date?: string | null;
 }
 
 const statusStyles: Record<string, string> = {
