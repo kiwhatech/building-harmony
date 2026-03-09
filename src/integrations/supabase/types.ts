@@ -756,6 +756,51 @@ export type Database = {
         }
         Relationships: []
       }
+      provider_ratings: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          provider_id: string
+          rating: number
+          request_id: string
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          provider_id: string
+          rating: number
+          request_id: string
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          provider_id?: string
+          rating?: number
+          request_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_ratings_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "provider_ratings_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "unified_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       providers: {
         Row: {
           address: string | null

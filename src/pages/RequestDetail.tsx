@@ -16,6 +16,7 @@ import { RequestTimeline } from '@/components/requests/RequestTimeline';
 import { RequestCompletedCard } from '@/components/requests/RequestCompletedCard';
 import { InterventionPaymentCard } from '@/components/requests/InterventionPaymentCard';
 import { RequestPaymentStatus } from '@/components/requests/RequestPaymentStatus';
+import { ProviderRating } from '@/components/requests/ProviderRating';
 import type { UnifiedRequestType, MaintenanceCategory, UnifiedRequestStatus } from '@/types/requests';
 
 export default function RequestDetail() {
@@ -30,6 +31,7 @@ export default function RequestDetail() {
   const [saving, setSaving] = useState(false);
   const [buildings, setBuildings] = useState<{ id: string; name: string }[]>([]);
   const [units, setUnits] = useState<{ id: string; unit_number: string }[]>([]);
+  const [assignedProviderName, setAssignedProviderName] = useState<string>('');
 
   const [form, setForm] = useState<RequestFormData>({
     building_id: '',
@@ -106,6 +108,17 @@ export default function RequestDetail() {
       preferred_provider_id: d.preferred_provider_id || '',
       assigned_provider_id: d.assigned_provider_id || '',
     });
+    // Fetch assigned provider name
+    if (d.assigned_provider_id) {
+      const { data: prov } = await supabase
+        .from('providers')
+        .select('name')
+        .eq('id', d.assigned_provider_id)
+        .single();
+      setAssignedProviderName(prov?.name || '');
+    } else {
+      setAssignedProviderName('');
+    }
     setLoading(false);
   };
 
@@ -404,6 +417,15 @@ export default function RequestDetail() {
             onConvertToIntervention={handleConvertToIntervention}
             onSaveAdmin={handleSaveAdmin}
             onDelete={handleDelete}
+          />
+        )}
+
+        {/* Provider Rating (completed requests with assigned provider) */}
+        {request && request.status === 'completed' && request.assigned_provider_id && assignedProviderName && (
+          <ProviderRating
+            requestId={request.id}
+            providerId={request.assigned_provider_id}
+            providerName={assignedProviderName}
           />
         )}
 
