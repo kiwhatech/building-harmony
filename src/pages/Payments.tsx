@@ -185,9 +185,9 @@ export default function Payments() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">By Type</p>
-                  <div className="flex gap-3 mt-1">
-                    <span className="text-sm"><DollarSign className="inline h-3 w-3" /> {totals.unitFees} fees</span>
-                    <span className="text-sm"><Wrench className="inline h-3 w-3" /> {totals.interventions} interventions</span>
+                  <div className="flex flex-col gap-1 mt-1">
+                    <span className="text-sm"><DollarSign className="inline h-3 w-3" /> {totals.unitFees} fees · {totals.unitFeeAmount.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}</span>
+                    <span className="text-sm"><Wrench className="inline h-3 w-3" /> {totals.interventions} interventions · {totals.interventionAmount.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}</span>
                   </div>
                 </div>
               </div>
