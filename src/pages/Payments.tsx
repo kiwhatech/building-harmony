@@ -74,7 +74,7 @@ export default function Payments() {
     try {
       const { data, error } = await supabase
         .from('payments')
-        .select('*, fees(description)')
+        .select('*, fees(description), unified_requests(title, request_type, category, scheduled_date)')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -96,6 +96,10 @@ export default function Payments() {
         (data || []).map((p: any) => ({
           ...p,
           fee_description: p.fees?.description,
+          request_title: p.unified_requests?.title,
+          request_type: p.unified_requests?.request_type,
+          request_category: p.unified_requests?.category,
+          request_scheduled_date: p.unified_requests?.scheduled_date,
           profile_name: p.created_by ? profileMap[p.created_by] || 'Unknown' : 'System',
         }))
       );
