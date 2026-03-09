@@ -34,8 +34,13 @@ interface Payment {
   created_at: string;
   created_by: string | null;
   notes: string | null;
+  trn: string | null;
   profile_name?: string;
   fee_description?: string;
+  request_title?: string;
+  request_type?: string;
+  request_category?: string;
+  request_scheduled_date?: string | null;
 }
 
 const statusStyles: Record<string, string> = {
@@ -69,7 +74,7 @@ export default function Payments() {
     try {
       const { data, error } = await supabase
         .from('payments')
-        .select('*, fees(description)')
+        .select('*, fees(description), unified_requests(title, request_type, category, scheduled_date)')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -91,6 +96,10 @@ export default function Payments() {
         (data || []).map((p: any) => ({
           ...p,
           fee_description: p.fees?.description,
+          request_title: p.unified_requests?.title,
+          request_type: p.unified_requests?.request_type,
+          request_category: p.unified_requests?.category,
+          request_scheduled_date: p.unified_requests?.scheduled_date,
           profile_name: p.created_by ? profileMap[p.created_by] || 'Unknown' : 'System',
         }))
       );
@@ -123,11 +132,14 @@ export default function Payments() {
   };
 
   const filtered = useMemo(() => payments.filter(p => {
+    const q = searchQuery.toLowerCase();
     const matchesSearch =
-      p.fee_description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.profile_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.reference_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.gateway_payment_id?.toLowerCase().includes(searchQuery.toLowerCase());
+      p.fee_description?.toLowerCase().includes(q) ||
+      p.request_title?.toLowerCase().includes(q) ||
+      p.profile_name?.toLowerCase().includes(q) ||
+      p.reference_number?.toLowerCase().includes(q) ||
+      p.trn?.toLowerCase().includes(q) ||
+      p.gateway_payment_id?.toLowerCase().includes(q);
     const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
     const matchesType = typeFilter === 'all' || p.payment_type === typeFilter;
     return matchesSearch && matchesStatus && matchesType;
@@ -136,9 +148,11 @@ export default function Payments() {
   const totals = useMemo(() => ({
     total: payments.length,
     succeeded: payments.filter(p => p.status === 'succeeded').reduce((s, p) => s + Number(p.amount), 0),
-    pending: payments.filter(p => ['created', 'pending'].includes(p.status)).length,
+    pending: payments.filter(p => ['created', 'pending', 'pending_confirmation'].includes(p.status)).length,
     interventions: payments.filter(p => p.payment_type === 'intervention').length,
+    interventionAmount: payments.filter(p => p.payment_type === 'intervention').reduce((s, p) => s + Number(p.amount), 0),
     unitFees: payments.filter(p => p.payment_type === 'unit_fee').length,
+    unitFeeAmount: payments.filter(p => p.payment_type === 'unit_fee').reduce((s, p) => s + Number(p.amount), 0),
   }), [payments]);
 
   return (
@@ -171,9 +185,9 @@ export default function Payments() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">By Type</p>
-                  <div className="flex gap-3 mt-1">
-                    <span className="text-sm"><DollarSign className="inline h-3 w-3" /> {totals.unitFees} fees</span>
-                    <span className="text-sm"><Wrench className="inline h-3 w-3" /> {totals.interventions} interventions</span>
+                  <div className="flex flex-col gap-1 mt-1">
+                    <span className="text-sm"><DollarSign className="inline h-3 w-3" /> {totals.unitFees} fees · {totals.unitFeeAmount.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}</span>
+                    <span className="text-sm"><Wrench className="inline h-3 w-3" /> {totals.interventions} interventions · {totals.interventionAmount.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}</span>
                   </div>
                 </div>
               </div>
@@ -260,7 +274,24 @@ export default function Payments() {
                           {p.payment_type === 'intervention' ? 'Intervention' : 'Fee'}
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-medium">{p.fee_description || '—'}</TableCell>
+                      <TableCell className="font-medium">
+                        {p.payment_type === 'intervention' && p.request_title ? (
+                          <div className="space-y-0.5">
+                            <span>{p.request_title}</span>
+                            <div className="flex gap-1.5 text-xs text-muted-foreground">
+                              <Badge variant="outline" className="text-[10px] px-1 py-0">
+                                {p.request_type === 'quotation' ? 'Quotation' : 'Intervention'}
+                              </Badge>
+                              <span className="capitalize">{p.request_category}</span>
+                              {p.request_scheduled_date && (
+                                <span>· Due {format(new Date(p.request_scheduled_date), 'MMM d, yyyy')}</span>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          p.fee_description || '—'
+                        )}
+                      </TableCell>
                       <TableCell className="text-muted-foreground">{p.profile_name}</TableCell>
                       <TableCell className="font-medium">
                         {Number(p.amount).toLocaleString('it-IT', { style: 'currency', currency: p.currency || 'EUR' })}
