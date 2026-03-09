@@ -420,6 +420,15 @@ export default function RequestDetail() {
           />
         )}
 
+        {/* Provider Rating (completed requests with assigned provider) */}
+        {request && request.status === 'completed' && request.assigned_provider_id && assignedProviderName && (
+          <ProviderRating
+            requestId={request.id}
+            providerId={request.assigned_provider_id}
+            providerName={assignedProviderName}
+          />
+        )}
+
         {/* Completed / Rejected card */}
         {request && ['completed', 'rejected'].includes(request.status) && (
           <RequestCompletedCard request={request} />
