@@ -153,7 +153,7 @@ export default function Fees() {
                     {totals.pending.toLocaleString("it-IT", { style: "currency", currency: "EUR" })}
                   </p>
                 </div>
-                <Clock className="h-8 w-8 text-warning" />
+                <Clock className="h-6 w-6 text-warning" />
               </div>
             </CardContent>
           </Card>
