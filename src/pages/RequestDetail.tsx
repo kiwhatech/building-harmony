@@ -31,6 +31,7 @@ export default function RequestDetail() {
   const [saving, setSaving] = useState(false);
   const [buildings, setBuildings] = useState<{ id: string; name: string }[]>([]);
   const [units, setUnits] = useState<{ id: string; unit_number: string }[]>([]);
+  const [assignedProviderName, setAssignedProviderName] = useState<string>('');
 
   const [form, setForm] = useState<RequestFormData>({
     building_id: '',
