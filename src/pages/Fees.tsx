@@ -179,7 +179,7 @@ export default function Fees() {
                     {totals.overdue.toLocaleString("it-IT", { style: "currency", currency: "EUR" })}
                   </p>
                 </div>
-                <AlertTriangle className="h-8 w-8 text-destructive" />
+                <AlertTriangle className="h-6 w-6 text-destructive" />
               </div>
             </CardContent>
           </Card>
