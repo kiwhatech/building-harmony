@@ -103,7 +103,7 @@ const Index = () => {
             Join thousands of condominiums already using Harmony to simplify their operations.
           </p>
           <Button asChild size="lg" variant="secondary" className="text-lg px-8">
-            <Link to="/auth">Start Free Today</Link>
+            <Link to="/auth">Start Today</Link>
           </Button>
         </div>
       </div>
