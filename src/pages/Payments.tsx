@@ -272,7 +272,24 @@ export default function Payments() {
                           {p.payment_type === 'intervention' ? 'Intervention' : 'Fee'}
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-medium">{p.fee_description || '—'}</TableCell>
+                      <TableCell className="font-medium">
+                        {p.payment_type === 'intervention' && p.request_title ? (
+                          <div className="space-y-0.5">
+                            <span>{p.request_title}</span>
+                            <div className="flex gap-1.5 text-xs text-muted-foreground">
+                              <Badge variant="outline" className="text-[10px] px-1 py-0">
+                                {p.request_type === 'quotation' ? 'Quotation' : 'Intervention'}
+                              </Badge>
+                              <span className="capitalize">{p.request_category}</span>
+                              {p.request_scheduled_date && (
+                                <span>· Due {format(new Date(p.request_scheduled_date), 'MMM d, yyyy')}</span>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          p.fee_description || '—'
+                        )}
+                      </TableCell>
                       <TableCell className="text-muted-foreground">{p.profile_name}</TableCell>
                       <TableCell className="font-medium">
                         {Number(p.amount).toLocaleString('it-IT', { style: 'currency', currency: p.currency || 'EUR' })}
