@@ -148,9 +148,11 @@ export default function Payments() {
   const totals = useMemo(() => ({
     total: payments.length,
     succeeded: payments.filter(p => p.status === 'succeeded').reduce((s, p) => s + Number(p.amount), 0),
-    pending: payments.filter(p => ['created', 'pending'].includes(p.status)).length,
+    pending: payments.filter(p => ['created', 'pending', 'pending_confirmation'].includes(p.status)).length,
     interventions: payments.filter(p => p.payment_type === 'intervention').length,
+    interventionAmount: payments.filter(p => p.payment_type === 'intervention').reduce((s, p) => s + Number(p.amount), 0),
     unitFees: payments.filter(p => p.payment_type === 'unit_fee').length,
+    unitFeeAmount: payments.filter(p => p.payment_type === 'unit_fee').reduce((s, p) => s + Number(p.amount), 0),
   }), [payments]);
 
   return (
