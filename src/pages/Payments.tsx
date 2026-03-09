@@ -258,14 +258,12 @@ export default function Payments() {
                   <TableHead>Amount</TableHead>
                   <TableHead>Method</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Reference / TRN</TableHead>
-                  <TableHead className="w-12" />
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map(p => {
                   const TypeIcon = typeIcons[p.payment_type] || CreditCard;
+                  const description = p.payment_type === 'intervention' ? p.request_title : p.fee_description;
                   return (
                     <TableRow key={p.id}>
                       <TableCell>
@@ -275,22 +273,7 @@ export default function Payments() {
                         </Badge>
                       </TableCell>
                       <TableCell className="font-medium">
-                        {p.payment_type === 'intervention' && p.request_title ? (
-                          <div className="space-y-0.5">
-                            <span>{p.request_title}</span>
-                            <div className="flex gap-1.5 text-xs text-muted-foreground">
-                              <Badge variant="outline" className="text-[10px] px-1 py-0">
-                                {p.request_type === 'quotation' ? 'Quotation' : 'Intervention'}
-                              </Badge>
-                              <span className="capitalize">{p.request_category}</span>
-                              {p.request_scheduled_date && (
-                                <span>· Due {format(new Date(p.request_scheduled_date), 'MMM d, yyyy')}</span>
-                              )}
-                            </div>
-                          </div>
-                        ) : (
-                          p.fee_description || '—'
-                        )}
+                        {description || '—'}
                       </TableCell>
                       <TableCell className="text-muted-foreground">{p.profile_name}</TableCell>
                       <TableCell className="font-medium">
@@ -305,22 +288,6 @@ export default function Payments() {
                         <Badge variant="secondary" className={statusStyles[p.status] || ''}>
                           {p.status === 'pending_confirmation' ? 'Pending Confirm' : p.status}
                         </Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(p.created_at), 'MMM d, yyyy HH:mm')}
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground font-mono">
-                        {(p as any).trn || p.gateway_payment_id?.slice(0, 20) || p.reference_number?.slice(0, 20) || '—'}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          onClick={() => setDeletingPayment(p)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
                       </TableCell>
                     </TableRow>
                   );
