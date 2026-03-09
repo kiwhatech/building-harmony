@@ -142,7 +142,6 @@ export default function Fees() {
                 </div>
                 <DollarSign className="h-6 w-6 text-muted-foreground" />
               </div>
-              </div>
             </CardContent>
           </Card>
           <Card>
