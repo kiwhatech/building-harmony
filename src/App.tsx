@@ -22,6 +22,7 @@ import RequestDetail from "./pages/RequestDetail";
 import Providers from "./pages/Providers";
 import Payments from "./pages/Payments";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
