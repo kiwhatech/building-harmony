@@ -107,6 +107,7 @@ export default function RequestDetail() {
       scheduled_minute: scheduledDate ? format(scheduledDate, 'mm') : '00',
       preferred_provider_id: d.preferred_provider_id || '',
       assigned_provider_id: d.assigned_provider_id || '',
+    });
     // Fetch assigned provider name
     if (d.assigned_provider_id) {
       const { data: prov } = await supabase
@@ -119,6 +120,7 @@ export default function RequestDetail() {
       setAssignedProviderName('');
     }
     setLoading(false);
+  };
 
   const updateField = (field: string, value: any) =>
     setForm((prev) => ({ ...prev, [field]: value }));
