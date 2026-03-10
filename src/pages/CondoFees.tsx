@@ -975,18 +975,15 @@ export default function CondoFees() {
           <TabsContent value="calculate" className="space-y-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div className="space-y-2">
-                <Label>Year</Label>
-                <Select value={String(selectedYear)} onValueChange={v => setSelectedYear(parseInt(v))}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
+                <Label>Budget Period</Label>
+                <Select value={selectedBudgetId} onValueChange={setSelectedBudgetId}>
+                  <SelectTrigger className="w-64">
+                    <SelectValue placeholder="Select a budget" />
                   </SelectTrigger>
                   <SelectContent>
                     {buildingBudgets.map(b => (
-                      <SelectItem key={b.year} value={String(b.year)}>{b.year}</SelectItem>
+                      <SelectItem key={b.id} value={b.id}>{getBudgetLabel(b)}</SelectItem>
                     ))}
-                    {buildingBudgets.length === 0 && (
-                      <SelectItem value={String(selectedYear)}>{selectedYear}</SelectItem>
-                    )}
                   </SelectContent>
                 </Select>
               </div>
