@@ -208,7 +208,7 @@ export default function RequestDetail() {
     setSaving(false);
   };
 
-  const handleStatusChange = async (newStatus: UnifiedRequestStatus) => {
+  const handleStatusChange = async (newStatus: UnifiedRequestStatus, paymentMethod?: string) => {
     if (newStatus === 'intervention' && !form.scheduled_date) {
       toast.error('Please select a scheduled date and time first');
       return;
@@ -262,11 +262,15 @@ export default function RequestDetail() {
         }
       }
 
-      // Auto-mark payment as succeeded when completing request
+      // Update payment method and mark as succeeded when completing request
       if (newStatus === 'completed') {
+        const updateData: any = { status: 'succeeded', updated_at: new Date().toISOString() };
+        if (paymentMethod) {
+          updateData.payment_method = paymentMethod;
+        }
         await supabase
           .from('payments')
-          .update({ status: 'succeeded', updated_at: new Date().toISOString() })
+          .update(updateData)
           .eq('request_id', id)
           .neq('status', 'succeeded');
       }
