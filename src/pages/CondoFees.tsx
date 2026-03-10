@@ -86,6 +86,8 @@ export default function CondoFees() {
   const [mtBuildingId, setMtBuildingId] = useState('');
   const [budgetDialogOpen, setBudgetDialogOpen] = useState(false);
   const [budgetYear, setBudgetYear] = useState(new Date().getFullYear());
+  const [budgetType, setBudgetType] = useState<'calendar' | 'custom'>('calendar');
+  const [budgetStartMonth, setBudgetStartMonth] = useState(0); // 0-based
   const [newCategories, setNewCategories] = useState<{ code: string; label: string; total: string; millesimi_table_id: string }[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
