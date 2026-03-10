@@ -114,7 +114,7 @@ export default function CondoFees() {
         supabase.from('units').select('id, unit_number, building_id, area_sqft').order('unit_number'),
         supabase.from('millesimi_tables').select('*').order('code'),
         supabase.from('millesimi_values').select('*'),
-        supabase.from('building_budgets').select('*').order('year', { ascending: false }),
+        supabase.from('building_budgets').select('*').order('start_date', { ascending: false }),
         supabase.from('budget_categories').select('*'),
       ]);
       if (bRes.error) throw bRes.error;
