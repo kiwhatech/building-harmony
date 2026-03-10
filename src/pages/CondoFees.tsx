@@ -874,11 +874,11 @@ export default function CondoFees() {
                       <CardHeader>
                         <div className="flex items-center justify-between">
                           <div>
-                            <CardTitle className="text-lg">Budget {budget.year}</CardTitle>
+                            <CardTitle className="text-lg">{getBudgetLabel(budget)}</CardTitle>
                             <CardDescription>Total: €{Number(budget.total_amount).toLocaleString()}</CardDescription>
                           </div>
                            <div className="flex items-center gap-2">
-                             <Badge variant="secondary" className="text-base">{budget.year}</Badge>
+                             <Badge variant="secondary" className="text-sm">{getBudgetLabel(budget).replace('Budget ', '')}</Badge>
                              {editingBudget !== budget.id ? (
                                <Button size="sm" variant="outline" onClick={() => initEditBudget(budget.id)}>
                                  <Pencil className="mr-1 h-3 w-3" />Edit
