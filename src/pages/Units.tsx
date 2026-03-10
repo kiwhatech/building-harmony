@@ -118,7 +118,7 @@ export default function Units() {
       const unitsWithDetails = await Promise.all(
         (unitsData || []).map(async (unit: any) => {
           const { count } = await supabase
-            .from('unit_residents')
+            .from('residents')
             .select('*', { count: 'exact', head: true })
             .eq('unit_id', unit.id);
           
