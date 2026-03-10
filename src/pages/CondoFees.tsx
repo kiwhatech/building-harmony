@@ -34,7 +34,19 @@ interface Unit { id: string; unit_number: string; building_id: string; area_sqft
 interface MillesimiTable { id: string; building_id: string; code: string; label: string; }
 interface MillesimiValue { id: string; millesimi_table_id: string; unit_id: string; value: number; }
 interface BudgetCategory { id: string; budget_id: string; millesimi_table_id: string; code: string; label: string; total: number; }
-interface BuildingBudget { id: string; building_id: string; year: number; total_amount: number; categories?: BudgetCategory[]; }
+interface BuildingBudget { id: string; building_id: string; year: number; total_amount: number; start_date: string; end_date: string; categories?: BudgetCategory[]; }
+
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function getBudgetLabel(budget: BuildingBudget): string {
+  const sd = new Date(budget.start_date + 'T00:00:00');
+  const ed = new Date(budget.end_date + 'T00:00:00');
+  const sm = sd.getMonth(); // 0-based
+  if (sm === 0 && ed.getMonth() === 11 && sd.getFullYear() === ed.getFullYear()) {
+    return `Budget ${sd.getFullYear()}`;
+  }
+  return `Budget ${MONTHS[sm]} ${sd.getFullYear()} – ${MONTHS[ed.getMonth()]} ${ed.getFullYear()}`;
+}
 
 interface UnitFeeResult {
   unitId: string;
@@ -45,9 +57,11 @@ interface UnitFeeResult {
 }
 
 interface CalcResult {
-  year: number;
+  budgetId: string;
+  budgetLabel: string;
   buildingId: string;
   totalBudget: number;
+  endDate: string;
   perUnitFees: UnitFeeResult[];
   notes: string[];
 }
@@ -64,7 +78,7 @@ export default function CondoFees() {
   const [isLoading, setIsLoading] = useState(true);
 
   const [selectedBuilding, setSelectedBuilding] = useState<string>('');
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedBudgetId, setSelectedBudgetId] = useState<string>('');
   const [calcResult, setCalcResult] = useState<CalcResult | null>(null);
 
   // Dialog states
@@ -74,6 +88,8 @@ export default function CondoFees() {
   const [mtBuildingId, setMtBuildingId] = useState('');
   const [budgetDialogOpen, setBudgetDialogOpen] = useState(false);
   const [budgetYear, setBudgetYear] = useState(new Date().getFullYear());
+  const [budgetType, setBudgetType] = useState<'calendar' | 'custom'>('calendar');
+  const [budgetStartMonth, setBudgetStartMonth] = useState(0); // 0-based
   const [newCategories, setNewCategories] = useState<{ code: string; label: string; total: string; millesimi_table_id: string }[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -98,7 +114,7 @@ export default function CondoFees() {
         supabase.from('units').select('id, unit_number, building_id, area_sqft').order('unit_number'),
         supabase.from('millesimi_tables').select('*').order('code'),
         supabase.from('millesimi_values').select('*'),
-        supabase.from('building_budgets').select('*').order('year', { ascending: false }),
+        supabase.from('building_budgets').select('*').order('start_date', { ascending: false }),
         supabase.from('budget_categories').select('*'),
       ]);
       if (bRes.error) throw bRes.error;
@@ -296,16 +312,28 @@ export default function CondoFees() {
 
   const handleCreateBudget = async () => {
     if (!selectedBuilding || newCategories.length === 0) return;
-    // Check: only 1 budget per building per year
-    if (budgets.some(b => b.building_id === selectedBuilding && b.year === budgetYear)) {
-      toast.error(`A budget for year ${budgetYear} already exists for this building.`);
-      return;
+    // Check for overlapping periods
+    const startDate = budgetType === 'calendar'
+      ? `${budgetYear}-01-01`
+      : `${budgetYear}-${String(budgetStartMonth + 1).padStart(2, '0')}-01`;
+    const endDateObj = new Date(budgetYear, budgetStartMonth + (budgetType === 'calendar' ? 11 : 11), 1);
+    if (budgetType === 'custom') {
+      endDateObj.setMonth(budgetStartMonth + 11);
     }
+    // Last day of the end month
+    const endDate = budgetType === 'calendar'
+      ? `${budgetYear}-12-31`
+      : (() => {
+          const d = new Date(budgetYear, budgetStartMonth + 12, 0); // last day of month 11 months later
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        })();
+
     setIsSubmitting(true);
     try {
       const totalAmount = newCategories.reduce((s, c) => s + (parseFloat(c.total) || 0), 0);
       const { data: budgetData, error: budgetErr } = await supabase.from('building_budgets').insert({
         building_id: selectedBuilding, year: budgetYear, total_amount: totalAmount, created_by: user?.id,
+        start_date: startDate, end_date: endDate,
       }).select().single();
       if (budgetErr) throw budgetErr;
 
@@ -329,8 +357,9 @@ export default function CondoFees() {
 
   // ── Fee calculation ──
   const calculateFees = () => {
-    const budget = buildingBudgets.find(b => b.year === selectedYear);
-    if (!budget) { toast.error('No budget found for selected year'); return; }
+    const budget = buildingBudgets.find(b => b.id === selectedBudgetId);
+    if (!budget) { toast.error('No budget selected'); return; }
+    const budgetLabel = getBudgetLabel(budget);
 
     const cats = budgetCategories.filter(c => c.budget_id === budget.id);
     if (cats.length === 0) { toast.error('No expense categories in this budget'); return; }
@@ -339,7 +368,6 @@ export default function CondoFees() {
     const perUnitFees: UnitFeeResult[] = [];
     const errors: string[] = [];
 
-    // For each category, compute millesimi sums
     const categoryData = cats.map(cat => {
       const tableValues = millesimiValues.filter(v => v.millesimi_table_id === cat.millesimi_table_id);
       const mTable = millesimiTables.find(mt => mt.id === cat.millesimi_table_id);
@@ -355,10 +383,7 @@ export default function CondoFees() {
       return { ...cat, tableValues, sum, mTableLabel: mTable?.label || cat.label };
     });
 
-    if (errors.length > 0) {
-      toast.error(errors[0]);
-      return;
-    }
+    if (errors.length > 0) { toast.error(errors[0]); return; }
 
     buildingUnits.forEach(unit => {
       const breakdown: UnitFeeResult['breakdown'] = [];
@@ -375,11 +400,8 @@ export default function CondoFees() {
         const unitShare = Math.round(Number(cat.total) * fraction * 100) / 100;
         totalYearlyFee += unitShare;
         breakdown.push({
-          categoryCode: cat.code,
-          categoryLabel: cat.label,
-          millesimiUsed: Number(mv.value),
-          categoryTotal: Number(cat.total),
-          unitShare,
+          categoryCode: cat.code, categoryLabel: cat.label, millesimiUsed: Number(mv.value),
+          categoryTotal: Number(cat.total), unitShare,
         });
         explanationParts.push(`${Number(mv.value)} millesimi ${cat.mTableLabel.toLowerCase()}`);
       });
@@ -387,26 +409,18 @@ export default function CondoFees() {
       totalYearlyFee = Math.round(totalYearlyFee * 100) / 100;
 
       perUnitFees.push({
-        unitId: unit.id,
-        unitNumber: unit.unit_number,
-        totalYearlyFee,
-        breakdown,
-        userExplanation: `La quota annua di Unità ${unit.unit_number} per il ${selectedYear} è ${totalYearlyFee.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}, calcolata sulla base di ${explanationParts.join(' e ')} rispetto al totale del condominio.`,
+        unitId: unit.id, unitNumber: unit.unit_number, totalYearlyFee, breakdown,
+        userExplanation: `La quota di Unità ${unit.unit_number} per ${budgetLabel.replace('Budget ', '')} è ${totalYearlyFee.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}, calcolata sulla base di ${explanationParts.join(' e ')} rispetto al totale del condominio.`,
       });
     });
 
-    if (errors.length > 0) {
-      notes.push(...errors.map(e => `⚠️ ${e}`));
-    }
-
+    if (errors.length > 0) { notes.push(...errors.map(e => `⚠️ ${e}`)); }
     perUnitFees.sort((a, b) => a.unitNumber.localeCompare(b.unitNumber));
 
     setCalcResult({
-      year: selectedYear,
-      buildingId: selectedBuilding,
-      totalBudget: Number(budget.total_amount),
-      perUnitFees,
-      notes,
+      budgetId: budget.id, budgetLabel, buildingId: selectedBuilding,
+      totalBudget: Number(budget.total_amount), endDate: budget.end_date,
+      perUnitFees, notes,
     });
   };
 
@@ -415,13 +429,12 @@ export default function CondoFees() {
     if (!calcResult || !user) return;
     setIsSavingFees(true);
     try {
-      // Delete existing fees for this building and year (based on description pattern)
-      const yearTag = `[${calcResult.year}]`;
+      const tag = `[${calcResult.budgetId}]`;
       const { data: existingFees } = await supabase
         .from('fees')
         .select('id')
         .eq('building_id', calcResult.buildingId)
-        .like('description', `${yearTag}%`);
+        .like('description', `${tag}%`);
 
       if (existingFees && existingFees.length > 0) {
         const { error: delErr } = await supabase
@@ -431,12 +444,11 @@ export default function CondoFees() {
         if (delErr) throw delErr;
       }
 
-      // Insert new fee records
-      const dueDate = `${calcResult.year}-12-31`;
+      const dueDate = calcResult.endDate;
       const feeInserts = calcResult.perUnitFees.map(uf => ({
         building_id: calcResult.buildingId,
         unit_id: uf.unitId,
-        description: `${yearTag} ${uf.breakdown.map(b => b.categoryLabel).join(', ')}`,
+        description: `${tag} ${calcResult.budgetLabel} — ${uf.breakdown.map(b => b.categoryLabel).join(', ')}`,
         amount: uf.totalYearlyFee,
         due_date: dueDate,
         status: 'pending' as const,
@@ -446,7 +458,7 @@ export default function CondoFees() {
       const { error: insErr } = await supabase.from('fees').insert(feeInserts);
       if (insErr) throw insErr;
 
-      toast.success(`Fee plan for ${calcResult.year} saved successfully (${feeInserts.length} fees)`);
+      toast.success(`Fee plan saved successfully (${feeInserts.length} fees)`);
     } catch (e: any) {
       console.error(e);
       toast.error(e.message || 'Failed to save fee plan');
@@ -723,10 +735,10 @@ export default function CondoFees() {
           <TabsContent value="budget" className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold">Yearly Budget</h3>
-                <p className="text-sm text-muted-foreground">Define the annual expense budget with categories linked to millesimi tables.</p>
+                <h3 className="text-lg font-semibold">Budget Setup</h3>
+                <p className="text-sm text-muted-foreground">Define budgets with calendar year or custom 12-month periods.</p>
               </div>
-              <Dialog open={budgetDialogOpen} onOpenChange={o => { setBudgetDialogOpen(o); if (!o) setNewCategories([]); }}>
+              <Dialog open={budgetDialogOpen} onOpenChange={o => { setBudgetDialogOpen(o); if (!o) { setNewCategories([]); setBudgetType('calendar'); setBudgetStartMonth(0); } }}>
                 <DialogTrigger asChild>
                   <Button disabled={!selectedBuilding || buildingMTables.length === 0}>
                     <Plus className="mr-2 h-4 w-4" />New Budget
@@ -734,20 +746,57 @@ export default function CondoFees() {
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl">
                   <DialogHeader>
-                    <DialogTitle>Create Yearly Budget</DialogTitle>
-                    <DialogDescription>Define expense categories and their totals for a specific year.</DialogDescription>
+                    <DialogTitle>Create Budget</DialogTitle>
+                    <DialogDescription>Define expense categories for a calendar year or custom 12-month period.</DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
+                    {/* Budget type selection */}
                     <div className="space-y-2">
-                      <Label>Year</Label>
-                      <Input type="number" value={budgetYear} onChange={e => setBudgetYear(parseInt(e.target.value))} />
-                      {budgets.some(b => b.building_id === selectedBuilding && b.year === budgetYear) && (
-                        <p className="text-xs text-destructive flex items-center gap-1">
-                          <AlertTriangle className="h-3 w-3" />
-                          A budget for {budgetYear} already exists for this building.
-                        </p>
+                      <Label>Budget Type</Label>
+                      <div className="flex gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" checked={budgetType === 'calendar'} onChange={() => setBudgetType('calendar')} className="accent-primary" />
+                          <span className="text-sm">Calendar Year (Jan – Dec)</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" checked={budgetType === 'custom'} onChange={() => setBudgetType('custom')} className="accent-primary" />
+                          <span className="text-sm">Custom Period (12 months)</span>
+                        </label>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      {budgetType === 'calendar' ? (
+                        <div className="space-y-2 col-span-2">
+                          <Label>Year</Label>
+                          <Input type="number" value={budgetYear} onChange={e => setBudgetYear(parseInt(e.target.value))} />
+                        </div>
+                      ) : (
+                        <>
+                          <div className="space-y-2">
+                            <Label>Start Month</Label>
+                            <Select value={String(budgetStartMonth)} onValueChange={v => setBudgetStartMonth(parseInt(v))}>
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                {MONTHS.map((m, i) => <SelectItem key={i} value={String(i)}>{m}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Start Year</Label>
+                            <Input type="number" value={budgetYear} onChange={e => setBudgetYear(parseInt(e.target.value))} />
+                          </div>
+                        </>
                       )}
                     </div>
+                    {/* Period preview */}
+                    {budgetType === 'custom' && (
+                      <div className="rounded-md bg-muted p-3 text-sm flex items-center gap-2">
+                        <Info className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="text-muted-foreground">
+                          Period: {MONTHS[budgetStartMonth]} {budgetYear} – {MONTHS[(budgetStartMonth + 11) % 12]} {budgetStartMonth + 11 >= 12 ? budgetYear + 1 : budgetYear}
+                        </span>
+                      </div>
+                    )}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <Label>Expense Categories</Label>
@@ -788,7 +837,7 @@ export default function CondoFees() {
                   </div>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setBudgetDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={handleCreateBudget} disabled={isSubmitting || newCategories.length === 0 || newCategories.some(c => !c.code || !c.millesimi_table_id) || budgets.some(b => b.building_id === selectedBuilding && b.year === budgetYear)}>
+                    <Button onClick={handleCreateBudget} disabled={isSubmitting || newCategories.length === 0 || newCategories.some(c => !c.code || !c.millesimi_table_id)}>
                       {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Create Budget
                     </Button>
                   </DialogFooter>
@@ -811,11 +860,11 @@ export default function CondoFees() {
                       <CardHeader>
                         <div className="flex items-center justify-between">
                           <div>
-                            <CardTitle className="text-lg">Budget {budget.year}</CardTitle>
+                            <CardTitle className="text-lg">{getBudgetLabel(budget)}</CardTitle>
                             <CardDescription>Total: €{Number(budget.total_amount).toLocaleString()}</CardDescription>
                           </div>
                            <div className="flex items-center gap-2">
-                             <Badge variant="secondary" className="text-base">{budget.year}</Badge>
+                             <Badge variant="secondary" className="text-sm">{getBudgetLabel(budget).replace('Budget ', '')}</Badge>
                              {editingBudget !== budget.id ? (
                                <Button size="sm" variant="outline" onClick={() => initEditBudget(budget.id)}>
                                  <Pencil className="mr-1 h-3 w-3" />Edit
@@ -834,9 +883,9 @@ export default function CondoFees() {
                                </AlertDialogTrigger>
                                <AlertDialogContent>
                                  <AlertDialogHeader>
-                                   <AlertDialogTitle>Delete budget {budget.year}?</AlertDialogTitle>
-                                   <AlertDialogDescription>
-                                     This will permanently delete the budget for {budget.year} and all its expense categories. This action cannot be undone.
+                                    <AlertDialogTitle>Delete {getBudgetLabel(budget)}?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This will permanently delete {getBudgetLabel(budget)} and all its expense categories. This action cannot be undone.
                                    </AlertDialogDescription>
                                  </AlertDialogHeader>
                                  <AlertDialogFooter>
@@ -926,23 +975,20 @@ export default function CondoFees() {
           <TabsContent value="calculate" className="space-y-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div className="space-y-2">
-                <Label>Year</Label>
-                <Select value={String(selectedYear)} onValueChange={v => setSelectedYear(parseInt(v))}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
+                <Label>Budget Period</Label>
+                <Select value={selectedBudgetId} onValueChange={setSelectedBudgetId}>
+                  <SelectTrigger className="w-64">
+                    <SelectValue placeholder="Select a budget" />
                   </SelectTrigger>
                   <SelectContent>
                     {buildingBudgets.map(b => (
-                      <SelectItem key={b.year} value={String(b.year)}>{b.year}</SelectItem>
+                      <SelectItem key={b.id} value={b.id}>{getBudgetLabel(b)}</SelectItem>
                     ))}
-                    {buildingBudgets.length === 0 && (
-                      <SelectItem value={String(selectedYear)}>{selectedYear}</SelectItem>
-                    )}
                   </SelectContent>
                 </Select>
               </div>
               <div className="flex gap-2">
-                <Button onClick={calculateFees} disabled={buildingBudgets.length === 0}>
+                <Button onClick={calculateFees} disabled={!selectedBudgetId}>
                   <Calculator className="mr-2 h-4 w-4" />Calculate Fees
                 </Button>
                 {calcResult && (
@@ -959,7 +1005,7 @@ export default function CondoFees() {
                 {/* Summary */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Fee Distribution — {calcResult.year}</CardTitle>
+                    <CardTitle>Fee Distribution — {calcResult.budgetLabel}</CardTitle>
                     <CardDescription>Total budget: €{calcResult.totalBudget.toLocaleString()}</CardDescription>
                   </CardHeader>
                   <CardContent>
