@@ -749,10 +749,10 @@ export default function CondoFees() {
           <TabsContent value="budget" className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold">Yearly Budget</h3>
-                <p className="text-sm text-muted-foreground">Define the annual expense budget with categories linked to millesimi tables.</p>
+                <h3 className="text-lg font-semibold">Budget Setup</h3>
+                <p className="text-sm text-muted-foreground">Define budgets with calendar year or custom 12-month periods.</p>
               </div>
-              <Dialog open={budgetDialogOpen} onOpenChange={o => { setBudgetDialogOpen(o); if (!o) setNewCategories([]); }}>
+              <Dialog open={budgetDialogOpen} onOpenChange={o => { setBudgetDialogOpen(o); if (!o) { setNewCategories([]); setBudgetType('calendar'); setBudgetStartMonth(0); } }}>
                 <DialogTrigger asChild>
                   <Button disabled={!selectedBuilding || buildingMTables.length === 0}>
                     <Plus className="mr-2 h-4 w-4" />New Budget
@@ -760,20 +760,57 @@ export default function CondoFees() {
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl">
                   <DialogHeader>
-                    <DialogTitle>Create Yearly Budget</DialogTitle>
-                    <DialogDescription>Define expense categories and their totals for a specific year.</DialogDescription>
+                    <DialogTitle>Create Budget</DialogTitle>
+                    <DialogDescription>Define expense categories for a calendar year or custom 12-month period.</DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
+                    {/* Budget type selection */}
                     <div className="space-y-2">
-                      <Label>Year</Label>
-                      <Input type="number" value={budgetYear} onChange={e => setBudgetYear(parseInt(e.target.value))} />
-                      {budgets.some(b => b.building_id === selectedBuilding && b.year === budgetYear) && (
-                        <p className="text-xs text-destructive flex items-center gap-1">
-                          <AlertTriangle className="h-3 w-3" />
-                          A budget for {budgetYear} already exists for this building.
-                        </p>
+                      <Label>Budget Type</Label>
+                      <div className="flex gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" checked={budgetType === 'calendar'} onChange={() => setBudgetType('calendar')} className="accent-primary" />
+                          <span className="text-sm">Calendar Year (Jan – Dec)</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" checked={budgetType === 'custom'} onChange={() => setBudgetType('custom')} className="accent-primary" />
+                          <span className="text-sm">Custom Period (12 months)</span>
+                        </label>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      {budgetType === 'calendar' ? (
+                        <div className="space-y-2 col-span-2">
+                          <Label>Year</Label>
+                          <Input type="number" value={budgetYear} onChange={e => setBudgetYear(parseInt(e.target.value))} />
+                        </div>
+                      ) : (
+                        <>
+                          <div className="space-y-2">
+                            <Label>Start Month</Label>
+                            <Select value={String(budgetStartMonth)} onValueChange={v => setBudgetStartMonth(parseInt(v))}>
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                {MONTHS.map((m, i) => <SelectItem key={i} value={String(i)}>{m}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Start Year</Label>
+                            <Input type="number" value={budgetYear} onChange={e => setBudgetYear(parseInt(e.target.value))} />
+                          </div>
+                        </>
                       )}
                     </div>
+                    {/* Period preview */}
+                    {budgetType === 'custom' && (
+                      <div className="rounded-md bg-muted p-3 text-sm flex items-center gap-2">
+                        <Info className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="text-muted-foreground">
+                          Period: {MONTHS[budgetStartMonth]} {budgetYear} – {MONTHS[(budgetStartMonth + 11) % 12]} {budgetStartMonth + 11 >= 12 ? budgetYear + 1 : budgetYear}
+                        </span>
+                      </div>
+                    )}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <Label>Expense Categories</Label>
