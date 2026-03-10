@@ -1005,7 +1005,7 @@ export default function CondoFees() {
                 {/* Summary */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Fee Distribution — {calcResult.year}</CardTitle>
+                    <CardTitle>Fee Distribution — {calcResult.budgetLabel}</CardTitle>
                     <CardDescription>Total budget: €{calcResult.totalBudget.toLocaleString()}</CardDescription>
                   </CardHeader>
                   <CardContent>
