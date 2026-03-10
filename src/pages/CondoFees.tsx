@@ -57,9 +57,11 @@ interface UnitFeeResult {
 }
 
 interface CalcResult {
-  year: number;
+  budgetId: string;
+  budgetLabel: string;
   buildingId: string;
   totalBudget: number;
+  endDate: string;
   perUnitFees: UnitFeeResult[];
   notes: string[];
 }
