@@ -357,8 +357,9 @@ export default function CondoFees() {
 
   // ── Fee calculation ──
   const calculateFees = () => {
-    const budget = buildingBudgets.find(b => b.year === selectedYear);
-    if (!budget) { toast.error('No budget found for selected year'); return; }
+    const budget = buildingBudgets.find(b => b.id === selectedBudgetId);
+    if (!budget) { toast.error('No budget selected'); return; }
+    const budgetLabel = getBudgetLabel(budget);
 
     const cats = budgetCategories.filter(c => c.budget_id === budget.id);
     if (cats.length === 0) { toast.error('No expense categories in this budget'); return; }
@@ -367,7 +368,6 @@ export default function CondoFees() {
     const perUnitFees: UnitFeeResult[] = [];
     const errors: string[] = [];
 
-    // For each category, compute millesimi sums
     const categoryData = cats.map(cat => {
       const tableValues = millesimiValues.filter(v => v.millesimi_table_id === cat.millesimi_table_id);
       const mTable = millesimiTables.find(mt => mt.id === cat.millesimi_table_id);
@@ -383,10 +383,7 @@ export default function CondoFees() {
       return { ...cat, tableValues, sum, mTableLabel: mTable?.label || cat.label };
     });
 
-    if (errors.length > 0) {
-      toast.error(errors[0]);
-      return;
-    }
+    if (errors.length > 0) { toast.error(errors[0]); return; }
 
     buildingUnits.forEach(unit => {
       const breakdown: UnitFeeResult['breakdown'] = [];
@@ -403,11 +400,8 @@ export default function CondoFees() {
         const unitShare = Math.round(Number(cat.total) * fraction * 100) / 100;
         totalYearlyFee += unitShare;
         breakdown.push({
-          categoryCode: cat.code,
-          categoryLabel: cat.label,
-          millesimiUsed: Number(mv.value),
-          categoryTotal: Number(cat.total),
-          unitShare,
+          categoryCode: cat.code, categoryLabel: cat.label, millesimiUsed: Number(mv.value),
+          categoryTotal: Number(cat.total), unitShare,
         });
         explanationParts.push(`${Number(mv.value)} millesimi ${cat.mTableLabel.toLowerCase()}`);
       });
@@ -415,26 +409,18 @@ export default function CondoFees() {
       totalYearlyFee = Math.round(totalYearlyFee * 100) / 100;
 
       perUnitFees.push({
-        unitId: unit.id,
-        unitNumber: unit.unit_number,
-        totalYearlyFee,
-        breakdown,
-        userExplanation: `La quota annua di Unità ${unit.unit_number} per il ${selectedYear} è ${totalYearlyFee.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}, calcolata sulla base di ${explanationParts.join(' e ')} rispetto al totale del condominio.`,
+        unitId: unit.id, unitNumber: unit.unit_number, totalYearlyFee, breakdown,
+        userExplanation: `La quota di Unità ${unit.unit_number} per ${budgetLabel.replace('Budget ', '')} è ${totalYearlyFee.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}, calcolata sulla base di ${explanationParts.join(' e ')} rispetto al totale del condominio.`,
       });
     });
 
-    if (errors.length > 0) {
-      notes.push(...errors.map(e => `⚠️ ${e}`));
-    }
-
+    if (errors.length > 0) { notes.push(...errors.map(e => `⚠️ ${e}`)); }
     perUnitFees.sort((a, b) => a.unitNumber.localeCompare(b.unitNumber));
 
     setCalcResult({
-      year: selectedYear,
-      buildingId: selectedBuilding,
-      totalBudget: Number(budget.total_amount),
-      perUnitFees,
-      notes,
+      budgetId: budget.id, budgetLabel, buildingId: selectedBuilding,
+      totalBudget: Number(budget.total_amount), endDate: budget.end_date,
+      perUnitFees, notes,
     });
   };
 
