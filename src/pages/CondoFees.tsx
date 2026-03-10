@@ -76,7 +76,7 @@ export default function CondoFees() {
   const [isLoading, setIsLoading] = useState(true);
 
   const [selectedBuilding, setSelectedBuilding] = useState<string>('');
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedBudgetId, setSelectedBudgetId] = useState<string>('');
   const [calcResult, setCalcResult] = useState<CalcResult | null>(null);
 
   // Dialog states
