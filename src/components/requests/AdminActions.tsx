@@ -258,6 +258,16 @@ export function AdminActions({
           </Button>
         </div>
       </CardContent>
+      <CompletionPaymentDialog
+        open={completionDialogOpen}
+        onOpenChange={setCompletionDialogOpen}
+        requestTitle={request.title}
+        amount={amount}
+        providerName={assignedProviderName || form.provider || ''}
+        onConfirm={async (paymentMethod) => {
+          await onStatusChange('completed', paymentMethod);
+        }}
+      />
     </Card>
   );
 }
