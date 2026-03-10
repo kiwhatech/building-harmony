@@ -114,7 +114,9 @@ export type Database = {
           building_id: string
           created_at: string
           created_by: string | null
+          end_date: string
           id: string
+          start_date: string
           total_amount: number
           updated_at: string
           year: number
@@ -123,7 +125,9 @@ export type Database = {
           building_id: string
           created_at?: string
           created_by?: string | null
+          end_date: string
           id?: string
+          start_date: string
           total_amount?: number
           updated_at?: string
           year: number
@@ -132,7 +136,9 @@ export type Database = {
           building_id?: string
           created_at?: string
           created_by?: string | null
+          end_date?: string
           id?: string
+          start_date?: string
           total_amount?: number
           updated_at?: string
           year?: number
