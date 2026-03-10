@@ -234,7 +234,7 @@ export function AdminActions({
 
           {request.status === 'ready_for_payment' && (
             <Button
-              onClick={() => onStatusChange('completed')}
+              onClick={() => setCompletionDialogOpen(true)}
               className="bg-success hover:bg-success/90 text-success-foreground"
             >
               <CheckCircle className="mr-2 h-4 w-4" /> Mark Completed
