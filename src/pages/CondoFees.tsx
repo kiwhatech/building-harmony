@@ -429,13 +429,12 @@ export default function CondoFees() {
     if (!calcResult || !user) return;
     setIsSavingFees(true);
     try {
-      // Delete existing fees for this building and year (based on description pattern)
-      const yearTag = `[${calcResult.year}]`;
+      const tag = `[${calcResult.budgetId}]`;
       const { data: existingFees } = await supabase
         .from('fees')
         .select('id')
         .eq('building_id', calcResult.buildingId)
-        .like('description', `${yearTag}%`);
+        .like('description', `${tag}%`);
 
       if (existingFees && existingFees.length > 0) {
         const { error: delErr } = await supabase
@@ -445,12 +444,11 @@ export default function CondoFees() {
         if (delErr) throw delErr;
       }
 
-      // Insert new fee records
-      const dueDate = `${calcResult.year}-12-31`;
+      const dueDate = calcResult.endDate;
       const feeInserts = calcResult.perUnitFees.map(uf => ({
         building_id: calcResult.buildingId,
         unit_id: uf.unitId,
-        description: `${yearTag} ${uf.breakdown.map(b => b.categoryLabel).join(', ')}`,
+        description: `${tag} ${calcResult.budgetLabel} — ${uf.breakdown.map(b => b.categoryLabel).join(', ')}`,
         amount: uf.totalYearlyFee,
         due_date: dueDate,
         status: 'pending' as const,
@@ -460,7 +458,7 @@ export default function CondoFees() {
       const { error: insErr } = await supabase.from('fees').insert(feeInserts);
       if (insErr) throw insErr;
 
-      toast.success(`Fee plan for ${calcResult.year} saved successfully (${feeInserts.length} fees)`);
+      toast.success(`Fee plan saved successfully (${feeInserts.length} fees)`);
     } catch (e: any) {
       console.error(e);
       toast.error(e.message || 'Failed to save fee plan');
