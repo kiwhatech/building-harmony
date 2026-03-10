@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,22 +17,26 @@ import { format } from 'date-fns';
 import { useProviders } from '@/hooks/useProviders';
 import type { UnifiedRequestStatus } from '@/types/requests';
 import type { RequestFormData } from './RequestForm';
+import { CompletionPaymentDialog } from './CompletionPaymentDialog';
 
 interface Props {
   request: any;
   form: RequestFormData;
   onUpdate: (field: string, value: any) => void;
-  onStatusChange: (status: UnifiedRequestStatus) => void;
+  onStatusChange: (status: UnifiedRequestStatus, paymentMethod?: string) => void;
   onConvertToIntervention: () => void;
   onSaveAdmin: () => void;
   onDelete: () => void;
+  assignedProviderName?: string;
 }
 
 export function AdminActions({
-  request, form, onUpdate, onStatusChange, onConvertToIntervention, onSaveAdmin, onDelete,
+  request, form, onUpdate, onStatusChange, onConvertToIntervention, onSaveAdmin, onDelete, assignedProviderName,
 }: Props) {
+  const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
   const showScheduler = ['in_review', 'quoted', 'waiting_approval', 'intervention'].includes(request.status);
   const { providers } = useProviders(form.category);
+  const amount = form.estimated_amount ? parseFloat(form.estimated_amount) : 0;
 
   // Find preferred provider name
   const preferredProvider = request.preferred_provider_id
@@ -229,7 +234,7 @@ export function AdminActions({
 
           {request.status === 'ready_for_payment' && (
             <Button
-              onClick={() => onStatusChange('completed')}
+              onClick={() => setCompletionDialogOpen(true)}
               className="bg-success hover:bg-success/90 text-success-foreground"
             >
               <CheckCircle className="mr-2 h-4 w-4" /> Mark Completed
@@ -253,6 +258,16 @@ export function AdminActions({
           </Button>
         </div>
       </CardContent>
+      <CompletionPaymentDialog
+        open={completionDialogOpen}
+        onOpenChange={setCompletionDialogOpen}
+        requestTitle={request.title}
+        amount={amount}
+        providerName={assignedProviderName || form.provider || ''}
+        onConfirm={async (paymentMethod) => {
+          await onStatusChange('completed', paymentMethod);
+        }}
+      />
     </Card>
   );
 }
