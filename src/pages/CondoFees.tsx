@@ -988,7 +988,7 @@ export default function CondoFees() {
                 </Select>
               </div>
               <div className="flex gap-2">
-                <Button onClick={calculateFees} disabled={buildingBudgets.length === 0}>
+                <Button onClick={calculateFees} disabled={!selectedBudgetId}>
                   <Calculator className="mr-2 h-4 w-4" />Calculate Fees
                 </Button>
                 {calcResult && (
