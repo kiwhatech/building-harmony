@@ -851,7 +851,7 @@ export default function CondoFees() {
                   </div>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setBudgetDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={handleCreateBudget} disabled={isSubmitting || newCategories.length === 0 || newCategories.some(c => !c.code || !c.millesimi_table_id) || budgets.some(b => b.building_id === selectedBuilding && b.year === budgetYear)}>
+                    <Button onClick={handleCreateBudget} disabled={isSubmitting || newCategories.length === 0 || newCategories.some(c => !c.code || !c.millesimi_table_id)}>
                       {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Create Budget
                     </Button>
                   </DialogFooter>
