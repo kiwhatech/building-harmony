@@ -34,7 +34,19 @@ interface Unit { id: string; unit_number: string; building_id: string; area_sqft
 interface MillesimiTable { id: string; building_id: string; code: string; label: string; }
 interface MillesimiValue { id: string; millesimi_table_id: string; unit_id: string; value: number; }
 interface BudgetCategory { id: string; budget_id: string; millesimi_table_id: string; code: string; label: string; total: number; }
-interface BuildingBudget { id: string; building_id: string; year: number; total_amount: number; categories?: BudgetCategory[]; }
+interface BuildingBudget { id: string; building_id: string; year: number; total_amount: number; start_date: string; end_date: string; categories?: BudgetCategory[]; }
+
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function getBudgetLabel(budget: BuildingBudget): string {
+  const sd = new Date(budget.start_date + 'T00:00:00');
+  const ed = new Date(budget.end_date + 'T00:00:00');
+  const sm = sd.getMonth(); // 0-based
+  if (sm === 0 && ed.getMonth() === 11 && sd.getFullYear() === ed.getFullYear()) {
+    return `Budget ${sd.getFullYear()}`;
+  }
+  return `Budget ${MONTHS[sm]} ${sd.getFullYear()} – ${MONTHS[ed.getMonth()]} ${ed.getFullYear()}`;
+}
 
 interface UnitFeeResult {
   unitId: string;
