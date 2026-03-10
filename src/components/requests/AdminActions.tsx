@@ -31,10 +31,12 @@ interface Props {
 }
 
 export function AdminActions({
-  request, form, onUpdate, onStatusChange, onConvertToIntervention, onSaveAdmin, onDelete,
+  request, form, onUpdate, onStatusChange, onConvertToIntervention, onSaveAdmin, onDelete, assignedProviderName,
 }: Props) {
+  const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
   const showScheduler = ['in_review', 'quoted', 'waiting_approval', 'intervention'].includes(request.status);
   const { providers } = useProviders(form.category);
+  const amount = form.estimated_amount ? parseFloat(form.estimated_amount) : 0;
 
   // Find preferred provider name
   const preferredProvider = request.preferred_provider_id
