@@ -421,6 +421,7 @@ export default function RequestDetail() {
             onConvertToIntervention={handleConvertToIntervention}
             onSaveAdmin={handleSaveAdmin}
             onDelete={handleDelete}
+            assignedProviderName={assignedProviderName}
           />
         )}
 
