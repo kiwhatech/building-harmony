@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,15 +17,17 @@ import { format } from 'date-fns';
 import { useProviders } from '@/hooks/useProviders';
 import type { UnifiedRequestStatus } from '@/types/requests';
 import type { RequestFormData } from './RequestForm';
+import { CompletionPaymentDialog } from './CompletionPaymentDialog';
 
 interface Props {
   request: any;
   form: RequestFormData;
   onUpdate: (field: string, value: any) => void;
-  onStatusChange: (status: UnifiedRequestStatus) => void;
+  onStatusChange: (status: UnifiedRequestStatus, paymentMethod?: string) => void;
   onConvertToIntervention: () => void;
   onSaveAdmin: () => void;
   onDelete: () => void;
+  assignedProviderName?: string;
 }
 
 export function AdminActions({
