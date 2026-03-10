@@ -897,9 +897,9 @@ export default function CondoFees() {
                                </AlertDialogTrigger>
                                <AlertDialogContent>
                                  <AlertDialogHeader>
-                                   <AlertDialogTitle>Delete budget {budget.year}?</AlertDialogTitle>
-                                   <AlertDialogDescription>
-                                     This will permanently delete the budget for {budget.year} and all its expense categories. This action cannot be undone.
+                                    <AlertDialogTitle>Delete {getBudgetLabel(budget)}?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This will permanently delete {getBudgetLabel(budget)} and all its expense categories. This action cannot be undone.
                                    </AlertDialogDescription>
                                  </AlertDialogHeader>
                                  <AlertDialogFooter>
