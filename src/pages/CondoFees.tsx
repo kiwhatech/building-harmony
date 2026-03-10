@@ -310,16 +310,28 @@ export default function CondoFees() {
 
   const handleCreateBudget = async () => {
     if (!selectedBuilding || newCategories.length === 0) return;
-    // Check: only 1 budget per building per year
-    if (budgets.some(b => b.building_id === selectedBuilding && b.year === budgetYear)) {
-      toast.error(`A budget for year ${budgetYear} already exists for this building.`);
-      return;
+    // Check for overlapping periods
+    const startDate = budgetType === 'calendar'
+      ? `${budgetYear}-01-01`
+      : `${budgetYear}-${String(budgetStartMonth + 1).padStart(2, '0')}-01`;
+    const endDateObj = new Date(budgetYear, budgetStartMonth + (budgetType === 'calendar' ? 11 : 11), 1);
+    if (budgetType === 'custom') {
+      endDateObj.setMonth(budgetStartMonth + 11);
     }
+    // Last day of the end month
+    const endDate = budgetType === 'calendar'
+      ? `${budgetYear}-12-31`
+      : (() => {
+          const d = new Date(budgetYear, budgetStartMonth + 12, 0); // last day of month 11 months later
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        })();
+
     setIsSubmitting(true);
     try {
       const totalAmount = newCategories.reduce((s, c) => s + (parseFloat(c.total) || 0), 0);
       const { data: budgetData, error: budgetErr } = await supabase.from('building_budgets').insert({
         building_id: selectedBuilding, year: budgetYear, total_amount: totalAmount, created_by: user?.id,
+        start_date: startDate, end_date: endDate,
       }).select().single();
       if (budgetErr) throw budgetErr;
 
