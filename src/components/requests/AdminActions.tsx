@@ -18,6 +18,7 @@ import { useProviders } from '@/hooks/useProviders';
 import type { UnifiedRequestStatus } from '@/types/requests';
 import type { RequestFormData } from './RequestForm';
 import { CompletionPaymentDialog } from './CompletionPaymentDialog';
+import { ActionConfirmationDialog } from './ActionConfirmationDialog';
 
 interface Props {
   request: any;
@@ -30,18 +31,45 @@ interface Props {
   assignedProviderName?: string;
 }
 
+type PendingAction = {
+  label: string;
+  status: UnifiedRequestStatus;
+  variant: 'default' | 'destructive' | 'success' | 'warning';
+  icon: React.ReactNode;
+} | null;
+
 export function AdminActions({
   request, form, onUpdate, onStatusChange, onConvertToIntervention, onSaveAdmin, onDelete, assignedProviderName,
 }: Props) {
   const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
+  const [convertConfirmOpen, setConvertConfirmOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+
   const showScheduler = ['in_review', 'quoted', 'waiting_approval', 'intervention'].includes(request.status);
   const { providers } = useProviders(form.category);
   const amount = form.estimated_amount ? parseFloat(form.estimated_amount) : 0;
 
-  // Find preferred provider name
   const preferredProvider = request.preferred_provider_id
     ? providers.find((p: any) => p.id === request.preferred_provider_id)
     : null;
+
+  const formattedAmount = amount > 0
+    ? amount.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })
+    : '—';
+
+  const providerDisplay = assignedProviderName || form.provider || '—';
+
+  const buildDetails = () => [
+    { label: 'Request', value: request.title },
+    { label: 'Amount', value: formattedAmount },
+    { label: 'Provider', value: providerDisplay },
+    { label: 'Current Status', value: request.status.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()) },
+  ];
+
+  const openAction = (label: string, status: UnifiedRequestStatus, variant: PendingAction['variant'] & string, icon: React.ReactNode) => {
+    setPendingAction({ label, status, variant, icon });
+  };
 
   return (
     <Card>
@@ -187,37 +215,37 @@ export function AdminActions({
         {/* Status action buttons */}
         <div className="flex flex-wrap gap-2">
           {request.status === 'submitted' && (
-            <Button variant="outline" onClick={() => onStatusChange('in_review')}>
+            <Button variant="outline" onClick={() => openAction('Mark In Review', 'in_review', 'default', <Search className="h-4 w-4" />)}>
               <Search className="mr-2 h-4 w-4" /> Mark In Review
             </Button>
           )}
 
           {request.status === 'in_review' && (
             <>
-              <Button variant="outline" onClick={() => onStatusChange('quoted')}>
+              <Button variant="outline" onClick={() => openAction('Send Quotation', 'quoted', 'default', <FileText className="h-4 w-4" />)}>
                 <FileText className="mr-2 h-4 w-4" /> Send Quotation
               </Button>
-              <Button onClick={onConvertToIntervention}>
+              <Button onClick={() => setConvertConfirmOpen(true)}>
                 <ArrowRightCircle className="mr-2 h-4 w-4" /> Convert to Intervention
               </Button>
             </>
           )}
 
           {request.status === 'quoted' && (
-            <Button variant="outline" onClick={() => onStatusChange('waiting_approval')}>
+            <Button variant="outline" onClick={() => openAction('Send for Approval', 'waiting_approval', 'default', <Hourglass className="h-4 w-4" />)}>
               <Hourglass className="mr-2 h-4 w-4" /> Send for Approval
             </Button>
           )}
 
           {request.status === 'waiting_approval' && (
             <>
-              <Button onClick={onConvertToIntervention}>
+              <Button onClick={() => setConvertConfirmOpen(true)}>
                 <ArrowRightCircle className="mr-2 h-4 w-4" /> Convert to Intervention
               </Button>
-              <Button variant="outline" onClick={() => onStatusChange('quoted')}>
+              <Button variant="outline" onClick={() => openAction('Back to Quoted', 'quoted', 'default', <FileText className="h-4 w-4" />)}>
                 <FileText className="mr-2 h-4 w-4" /> Back to Quoted
               </Button>
-              <Button variant="outline" onClick={() => onStatusChange('in_review')}>
+              <Button variant="outline" onClick={() => openAction('Back to Review', 'in_review', 'default', <Search className="h-4 w-4" />)}>
                 <Search className="mr-2 h-4 w-4" /> Back to Review
               </Button>
             </>
@@ -225,7 +253,7 @@ export function AdminActions({
 
           {request.status === 'intervention' && (
             <Button
-              onClick={() => onStatusChange('ready_for_payment')}
+              onClick={() => openAction('Ready for Payment', 'ready_for_payment', 'warning', <CreditCard className="h-4 w-4" />)}
               className="bg-warning hover:bg-warning/90 text-warning-foreground"
             >
               <CreditCard className="mr-2 h-4 w-4" /> Ready for Payment
@@ -242,7 +270,7 @@ export function AdminActions({
           )}
 
           {['submitted', 'in_review', 'quoted', 'waiting_approval', 'intervention', 'ready_for_payment'].includes(request.status) && (
-            <Button variant="destructive" onClick={() => onStatusChange('rejected')}>
+            <Button variant="destructive" onClick={() => openAction('Reject', 'rejected', 'destructive', <XCircle className="h-4 w-4" />)}>
               <XCircle className="mr-2 h-4 w-4" /> Reject
             </Button>
           )}
@@ -253,11 +281,60 @@ export function AdminActions({
             </Button>
           )}
 
-          <Button variant="ghost" className="text-destructive ml-auto" onClick={onDelete}>
+          <Button variant="ghost" className="text-destructive ml-auto" onClick={() => setDeleteConfirmOpen(true)}>
             <Trash2 className="mr-2 h-4 w-4" /> Delete
           </Button>
         </div>
       </CardContent>
+
+      {/* Status change confirmation modal */}
+      {pendingAction && (
+        <ActionConfirmationDialog
+          open={!!pendingAction}
+          onOpenChange={(open) => { if (!open) setPendingAction(null); }}
+          actionLabel={pendingAction.label}
+          requestId={request.id}
+          details={buildDetails()}
+          variant={pendingAction.variant}
+          icon={pendingAction.icon}
+          onConfirm={async () => {
+            await onStatusChange(pendingAction.status);
+            setPendingAction(null);
+          }}
+        />
+      )}
+
+      {/* Convert to intervention confirmation */}
+      <ActionConfirmationDialog
+        open={convertConfirmOpen}
+        onOpenChange={setConvertConfirmOpen}
+        actionLabel="Convert to Intervention"
+        requestId={request.id}
+        details={buildDetails()}
+        variant="default"
+        icon={<ArrowRightCircle className="h-5 w-5 text-primary" />}
+        onConfirm={async () => {
+          await onConvertToIntervention();
+          setConvertConfirmOpen(false);
+        }}
+      />
+
+      {/* Delete confirmation */}
+      <ActionConfirmationDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        actionLabel="Delete"
+        requestId={request.id}
+        details={[{ label: 'Request', value: request.title }]}
+        variant="destructive"
+        icon={<Trash2 className="h-5 w-5" />}
+        onConfirm={async () => {
+          await onDelete();
+          setDeleteConfirmOpen(false);
+        }}
+      />
+
+      {/* Completion payment dialog (already a modal) */}
       <CompletionPaymentDialog
         open={completionDialogOpen}
         onOpenChange={setCompletionDialogOpen}
