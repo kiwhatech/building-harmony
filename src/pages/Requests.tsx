@@ -69,6 +69,7 @@ export default function Requests() {
   const navigate = useNavigate();
   const { hasRole } = useAuth();
   const isAdmin = hasRole('admin');
+  const [workflowOpen, setWorkflowOpen] = useState(false);
 
   const [requests, setRequests] = useState<RequestRow[]>([]);
   const [buildings, setBuildings] = useState<{ id: string; name: string }[]>([]);
