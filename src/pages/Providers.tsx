@@ -155,16 +155,17 @@ export default function Providers() {
     else { toast.success(p.is_active ? 'Provider deactivated' : 'Provider activated'); fetchProviders(); }
   };
 
-  const renderStars = (rating: number) => {
+  const renderStars = (rating: number | null) => {
+    const r = rating ?? 0;
     return (
       <div className="flex items-center gap-0.5">
         {[1, 2, 3, 4, 5].map((s) => (
           <Star
             key={s}
-            className={`h-3.5 w-3.5 ${s <= Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`}
+            className={`h-3.5 w-3.5 ${s <= Math.round(r) ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`}
           />
         ))}
-        <span className="text-xs text-muted-foreground ml-1">{rating.toFixed(1)}</span>
+        <span className="text-xs text-muted-foreground ml-1">{r.toFixed(1)}</span>
       </div>
     );
   };
