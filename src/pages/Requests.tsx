@@ -236,6 +236,38 @@ export default function Requests() {
         ) : (
           <RequestList requests={filtered} loading={loading} hasActiveFilters={hasActiveFilters} clearFilters={clearFilters} navigate={navigate} />
         )}
+
+        {/* Workflow Diagram - collapsible panel */}
+        <Collapsible open={workflowOpen} onOpenChange={setWorkflowOpen}>
+          <Card>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors py-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Workflow className="h-4 w-4 text-primary" />
+                    <CardTitle className="text-sm">Workflow Diagram</CardTitle>
+                    <Badge variant="secondary" className="text-xs">Interactive</Badge>
+                  </div>
+                  <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${workflowOpen ? 'rotate-180' : ''}`} />
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-0">
+                <WorkflowDiagram
+                  requests={requests.map(r => ({
+                    id: r.id,
+                    status: r.status,
+                    request_type: r.request_type,
+                    building_id: r.building_id,
+                    created_at: r.created_at,
+                  }))}
+                  buildings={buildings}
+                />
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       </div>
     </AppLayout>
   );
