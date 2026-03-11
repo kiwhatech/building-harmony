@@ -13,7 +13,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-  Plus, Search, Filter, X, Loader2, ClipboardList, Building2, Calendar, ChevronRight,
+  Plus, Search, Filter, X, Loader2, ClipboardList, Building2, Calendar, ChevronRight, ChevronDown, Workflow,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { RequestStatusBadge } from '@/components/requests/RequestStatusBadge';
