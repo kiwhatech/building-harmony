@@ -13,11 +13,13 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-  Plus, Search, Filter, X, Loader2, ClipboardList, Building2, Calendar, ChevronRight,
+  Plus, Search, Filter, X, Loader2, ClipboardList, Building2, Calendar, ChevronRight, ChevronDown, Workflow,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { RequestStatusBadge } from '@/components/requests/RequestStatusBadge';
 import { RequestTypeBadge } from '@/components/requests/RequestTypeBadge';
+import { WorkflowDiagram } from '@/components/requests/WorkflowDiagram';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { REQUEST_STATUSES } from '@/types/requests';
 import type { UnifiedRequestStatus, UnifiedRequestType } from '@/types/requests';
 
@@ -67,6 +69,7 @@ export default function Requests() {
   const navigate = useNavigate();
   const { hasRole } = useAuth();
   const isAdmin = hasRole('admin');
+  const [workflowOpen, setWorkflowOpen] = useState(false);
 
   const [requests, setRequests] = useState<RequestRow[]>([]);
   const [buildings, setBuildings] = useState<{ id: string; name: string }[]>([]);
@@ -233,6 +236,38 @@ export default function Requests() {
         ) : (
           <RequestList requests={filtered} loading={loading} hasActiveFilters={hasActiveFilters} clearFilters={clearFilters} navigate={navigate} />
         )}
+
+        {/* Workflow Diagram - collapsible panel */}
+        <Collapsible open={workflowOpen} onOpenChange={setWorkflowOpen}>
+          <Card>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors py-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Workflow className="h-4 w-4 text-primary" />
+                    <CardTitle className="text-sm">Workflow Diagram</CardTitle>
+                    <Badge variant="secondary" className="text-xs">Interactive</Badge>
+                  </div>
+                  <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${workflowOpen ? 'rotate-180' : ''}`} />
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-0">
+                <WorkflowDiagram
+                  requests={requests.map(r => ({
+                    id: r.id,
+                    status: r.status,
+                    request_type: r.request_type,
+                    building_id: r.building_id,
+                    created_at: r.created_at,
+                  }))}
+                  buildings={buildings}
+                />
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       </div>
     </AppLayout>
   );
