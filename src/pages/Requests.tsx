@@ -18,6 +18,8 @@ import {
 import { format } from 'date-fns';
 import { RequestStatusBadge } from '@/components/requests/RequestStatusBadge';
 import { RequestTypeBadge } from '@/components/requests/RequestTypeBadge';
+import { WorkflowDiagram } from '@/components/requests/WorkflowDiagram';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { REQUEST_STATUSES } from '@/types/requests';
 import type { UnifiedRequestStatus, UnifiedRequestType } from '@/types/requests';
 
