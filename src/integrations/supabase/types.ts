@@ -191,47 +191,65 @@ export type Database = {
       buildings: {
         Row: {
           address: string
+          admin_name: string | null
           bank_details: Json | null
           city: string | null
+          contract_info: string | null
           created_at: string
           created_by: string | null
           email: string | null
+          fiscal_code: string | null
           id: string
           image_url: string | null
+          legal_notes: string | null
           name: string
+          notes: string | null
           phone: string | null
           state: string | null
           updated_at: string
+          year_of_construction: number | null
           zip_code: string | null
         }
         Insert: {
           address: string
+          admin_name?: string | null
           bank_details?: Json | null
           city?: string | null
+          contract_info?: string | null
           created_at?: string
           created_by?: string | null
           email?: string | null
+          fiscal_code?: string | null
           id?: string
           image_url?: string | null
+          legal_notes?: string | null
           name: string
+          notes?: string | null
           phone?: string | null
           state?: string | null
           updated_at?: string
+          year_of_construction?: number | null
           zip_code?: string | null
         }
         Update: {
           address?: string
+          admin_name?: string | null
           bank_details?: Json | null
           city?: string | null
+          contract_info?: string | null
           created_at?: string
           created_by?: string | null
           email?: string | null
+          fiscal_code?: string | null
           id?: string
           image_url?: string | null
+          legal_notes?: string | null
           name?: string
+          notes?: string | null
           phone?: string | null
           state?: string | null
           updated_at?: string
+          year_of_construction?: number | null
           zip_code?: string | null
         }
         Relationships: []

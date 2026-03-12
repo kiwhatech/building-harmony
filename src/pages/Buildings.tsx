@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -58,6 +59,7 @@ interface Building {
 
 export default function Buildings() {
   const { user, hasRole } = useAuth();
+  const navigate = useNavigate();
   const isAdmin = hasRole('admin');
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -401,7 +403,7 @@ export default function Buildings() {
           viewMode === 'grid' ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredBuildings.map((building) => (
-                <Card key={building.id} className="transition-all hover:shadow-md">
+                <Card key={building.id} className="transition-all hover:shadow-md cursor-pointer" onClick={() => navigate(`/buildings/${building.id}`)}>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
@@ -420,7 +422,7 @@ export default function Buildings() {
                       </div>
                       {isAdmin && (
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                             <Button variant="ghost" size="icon" className="h-8 w-8">
                               <MoreVertical className="h-4 w-4" />
                             </Button>
@@ -492,7 +494,7 @@ export default function Buildings() {
                     </TableHeader>
                     <TableBody>
                       {filteredBuildings.map((building) => (
-                        <TableRow key={building.id}>
+                        <TableRow key={building.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/buildings/${building.id}`)}>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <div className="rounded-md bg-primary/10 p-1.5 shrink-0">
@@ -518,7 +520,7 @@ export default function Buildings() {
                           {isAdmin && (
                             <TableCell>
                               <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
+                                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                                   <Button variant="ghost" size="icon" className="h-8 w-8">
                                     <MoreVertical className="h-4 w-4" />
                                   </Button>

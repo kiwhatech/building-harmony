@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Buildings from "./pages/Buildings";
+import BuildingDetail from "./pages/BuildingDetail";
 import Units from "./pages/Units";
 import Residents from "./pages/Residents";
 import Fees from "./pages/Fees";
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/buildings" element={<Buildings />} />
+            <Route path="/buildings/:id" element={<BuildingDetail />} />
             <Route path="/units" element={<Units />} />
             <Route path="/residents" element={<Residents />} />
             <Route path="/requests" element={<Requests />} />
