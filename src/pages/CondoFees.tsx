@@ -848,7 +848,8 @@ export default function CondoFees() {
                     </Button>
                   </DialogFooter>
                 </DialogContent>
-              </Dialog>
+               </Dialog>
+              </div>
             </div>
 
             {buildingBudgets.length === 0 ? (
