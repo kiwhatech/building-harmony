@@ -976,6 +976,15 @@ export default function CondoFees() {
                 })}
               </div>
             )}
+
+            <ImportBudgetDialog
+              open={importDialogOpen}
+              onOpenChange={setImportDialogOpen}
+              selectedBuilding={selectedBuilding}
+              buildingMTables={buildingMTables}
+              userId={user?.id || ''}
+              onSuccess={fetchAll}
+            />
           </TabsContent>
 
           {/* ── Tab 3: Fee Calculation ── */}
