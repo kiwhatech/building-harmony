@@ -105,6 +105,7 @@ export default function CondoFees() {
   const [editingBudget, setEditingBudget] = useState<string | null>(null);
   const [editBudgetCats, setEditBudgetCats] = useState<{ id?: string; code: string; label: string; total: string; millesimi_table_id: string }[]>([]);
   const [savingBudget, setSavingBudget] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   useEffect(() => { fetchAll(); }, []);
 
