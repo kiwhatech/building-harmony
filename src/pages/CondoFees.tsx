@@ -25,8 +25,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import {
-  Calculator, Plus, Loader2, Building2, AlertTriangle, Info, Trash2, Save, Pencil,
+  Calculator, Plus, Loader2, Building2, AlertTriangle, Info, Trash2, Save, Pencil, Upload,
 } from 'lucide-react';
+import { ImportBudgetDialog } from '@/components/fees/ImportBudgetDialog';
 
 // ── Types ──────────────────────────────────────────────
 interface Building { id: string; name: string; }
