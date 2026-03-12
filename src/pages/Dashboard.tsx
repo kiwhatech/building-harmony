@@ -81,9 +81,9 @@ export default function Dashboard() {
       ] = await Promise.all([
         supabase.from('buildings').select('*', { count: 'exact', head: true }),
         supabase.from('units').select('*', { count: 'exact', head: true }),
-        supabase.from('unit_residents').select('*', { count: 'exact', head: true }),
+        supabase.from('residents').select('*', { count: 'exact', head: true }),
         supabase.from('fees').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('maintenance_requests').select('*', { count: 'exact', head: true }).in('status', ['requested', 'under_review', 'in_progress']),
+        supabase.from('unified_requests').select('*', { count: 'exact', head: true }).in('status', ['new', 'submitted', 'in_review', 'in_progress', 'intervention', 'scheduled']),
         supabase.from('estimates').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
       ]);
 
