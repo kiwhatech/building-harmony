@@ -740,6 +740,10 @@ export default function CondoFees() {
                 <h3 className="text-lg font-semibold">Budget Setup</h3>
                 <p className="text-sm text-muted-foreground">Define budgets with calendar year or custom 12-month periods.</p>
               </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" disabled={!selectedBuilding || buildingMTables.length === 0} onClick={() => setImportDialogOpen(true)}>
+                  <Upload className="mr-2 h-4 w-4" />Import Budget
+                </Button>
               <Dialog open={budgetDialogOpen} onOpenChange={o => { setBudgetDialogOpen(o); if (!o) { setNewCategories([]); setBudgetType('calendar'); setBudgetStartMonth(0); } }}>
                 <DialogTrigger asChild>
                   <Button disabled={!selectedBuilding || buildingMTables.length === 0}>
