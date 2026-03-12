@@ -193,7 +193,7 @@ export default function Dashboard() {
         icon: DollarSign,
         color: 'text-warning',
         bgColor: 'bg-warning/10',
-        href: '/fees',
+        href: '/fees?status=pending',
       },
       {
         title: 'Open Requests',
