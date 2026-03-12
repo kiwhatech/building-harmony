@@ -403,7 +403,7 @@ export default function Buildings() {
           viewMode === 'grid' ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredBuildings.map((building) => (
-                <Card key={building.id} className="transition-all hover:shadow-md">
+                <Card key={building.id} className="transition-all hover:shadow-md cursor-pointer" onClick={() => navigate(`/buildings/${building.id}`)}>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
