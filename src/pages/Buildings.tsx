@@ -59,6 +59,7 @@ interface Building {
 
 export default function Buildings() {
   const { user, hasRole } = useAuth();
+  const navigate = useNavigate();
   const isAdmin = hasRole('admin');
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [isLoading, setIsLoading] = useState(true);
