@@ -494,7 +494,7 @@ export default function Buildings() {
                     </TableHeader>
                     <TableBody>
                       {filteredBuildings.map((building) => (
-                        <TableRow key={building.id}>
+                        <TableRow key={building.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/buildings/${building.id}`)}>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <div className="rounded-md bg-primary/10 p-1.5 shrink-0">
