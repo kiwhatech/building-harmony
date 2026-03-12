@@ -25,8 +25,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import {
-  Calculator, Plus, Loader2, Building2, AlertTriangle, Info, Trash2, Save, Pencil,
+  Calculator, Plus, Loader2, Building2, AlertTriangle, Info, Trash2, Save, Pencil, Upload,
 } from 'lucide-react';
+import { ImportBudgetDialog } from '@/components/fees/ImportBudgetDialog';
 
 // ── Types ──────────────────────────────────────────────
 interface Building { id: string; name: string; }
@@ -104,6 +105,7 @@ export default function CondoFees() {
   const [editingBudget, setEditingBudget] = useState<string | null>(null);
   const [editBudgetCats, setEditBudgetCats] = useState<{ id?: string; code: string; label: string; total: string; millesimi_table_id: string }[]>([]);
   const [savingBudget, setSavingBudget] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   useEffect(() => { fetchAll(); }, []);
 
@@ -738,6 +740,10 @@ export default function CondoFees() {
                 <h3 className="text-lg font-semibold">Budget Setup</h3>
                 <p className="text-sm text-muted-foreground">Define budgets with calendar year or custom 12-month periods.</p>
               </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" disabled={!selectedBuilding || buildingMTables.length === 0} onClick={() => setImportDialogOpen(true)}>
+                  <Upload className="mr-2 h-4 w-4" />Import Budget
+                </Button>
               <Dialog open={budgetDialogOpen} onOpenChange={o => { setBudgetDialogOpen(o); if (!o) { setNewCategories([]); setBudgetType('calendar'); setBudgetStartMonth(0); } }}>
                 <DialogTrigger asChild>
                   <Button disabled={!selectedBuilding || buildingMTables.length === 0}>
@@ -842,7 +848,8 @@ export default function CondoFees() {
                     </Button>
                   </DialogFooter>
                 </DialogContent>
-              </Dialog>
+               </Dialog>
+              </div>
             </div>
 
             {buildingBudgets.length === 0 ? (
@@ -969,6 +976,15 @@ export default function CondoFees() {
                 })}
               </div>
             )}
+
+            <ImportBudgetDialog
+              open={importDialogOpen}
+              onOpenChange={setImportDialogOpen}
+              selectedBuilding={selectedBuilding}
+              buildingMTables={buildingMTables}
+              userId={user?.id || ''}
+              onSuccess={fetchAll}
+            />
           </TabsContent>
 
           {/* ── Tab 3: Fee Calculation ── */}
