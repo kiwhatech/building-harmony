@@ -175,13 +175,8 @@ export default function Dashboard() {
 
     return (
       <AppLayout 
-        title={
-          <div className="flex items-center gap-3">
-            <span>Dashboard</span>
-            <RoleBadge role="admin" />
-          </div>
-        } 
-        description={`Welcome back, ${userName}`}
+        title={<div className="flex items-center gap-3"><span>{t('dashboard.title')}</span><RoleBadge role="admin" /></div>} 
+        description={t('dashboard.welcomeBack', { name: userName })}
       >
         <div className="space-y-8">
           {/* Quick Stats */}
