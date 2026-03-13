@@ -205,35 +205,15 @@ export default function Dashboard() {
           {/* Quick Actions */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Quick Actions</CardTitle>
-              <CardDescription>Get started with common tasks</CardDescription>
+              <CardTitle className="text-lg">{t('dashboard.quickActions')}</CardTitle>
+              <CardDescription>{t('dashboard.quickActionsDesc')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-3">
-                <Button asChild>
-                  <Link to="/buildings">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Building
-                  </Link>
-                </Button>
-                <Button variant="outline" asChild>
-                  <Link to="/maintenance">
-                    <Wrench className="mr-2 h-4 w-4" />
-                    View Maintenance Requests
-                  </Link>
-                </Button>
-                <Button variant="outline" asChild>
-                  <Link to="/fees">
-                    <DollarSign className="mr-2 h-4 w-4" />
-                    Manage Fees
-                  </Link>
-                </Button>
-                <Button variant="outline" asChild>
-                  <Link to="/announcements">
-                    <Megaphone className="mr-2 h-4 w-4" />
-                    Post Announcement
-                  </Link>
-                </Button>
+                <Button asChild><Link to="/buildings"><Plus className="mr-2 h-4 w-4" />{t('dashboard.addBuilding')}</Link></Button>
+                <Button variant="outline" asChild><Link to="/maintenance"><Wrench className="mr-2 h-4 w-4" />{t('dashboard.viewRequests')}</Link></Button>
+                <Button variant="outline" asChild><Link to="/fees"><DollarSign className="mr-2 h-4 w-4" />{t('dashboard.manageFees')}</Link></Button>
+                <Button variant="outline" asChild><Link to="/announcements"><Megaphone className="mr-2 h-4 w-4" />{t('dashboard.postAnnouncement')}</Link></Button>
               </div>
             </CardContent>
           </Card>
