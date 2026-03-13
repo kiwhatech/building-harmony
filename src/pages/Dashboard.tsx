@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { supabase } from '@/integrations/supabase/client';
 import { RoleBadge } from '@/components/RoleBadge';
 import {
@@ -42,6 +43,7 @@ interface ResidentStats {
 
 export default function Dashboard() {
   const { user, hasRole, roles } = useAuth();
+  const { t, formatCurrency } = useLanguage();
   const [stats, setStats] = useState<DashboardStats>({
     buildings: 0,
     units: 0,
@@ -163,65 +165,18 @@ export default function Dashboard() {
   // Admin Dashboard
   if (isAdmin) {
     const statCards = [
-      {
-        title: 'Buildings',
-        value: stats.buildings,
-        icon: Building2,
-        color: 'text-primary',
-        bgColor: 'bg-primary/10',
-        href: '/buildings',
-      },
-      {
-        title: 'Units',
-        value: stats.units,
-        icon: Home,
-        color: 'text-accent',
-        bgColor: 'bg-accent/10',
-        href: '/units',
-      },
-      {
-        title: 'Residents',
-        value: stats.residents,
-        icon: Users,
-        color: 'text-secondary-foreground',
-        bgColor: 'bg-secondary',
-        href: '/residents',
-      },
-      {
-        title: 'Pending Fees',
-        value: stats.pendingFees,
-        icon: DollarSign,
-        color: 'text-warning',
-        bgColor: 'bg-warning/10',
-        href: '/fees?status=pending',
-      },
-      {
-        title: 'Open Requests',
-        value: stats.openRequests,
-        icon: Wrench,
-        color: 'text-info',
-        bgColor: 'bg-info/10',
-        href: '/maintenance',
-      },
-      {
-        title: 'Pending Estimates',
-        value: stats.pendingEstimates,
-        icon: TrendingUp,
-        color: 'text-success',
-        bgColor: 'bg-success/10',
-        href: '/estimates',
-      },
+      { title: t('dashboard.buildings'), value: stats.buildings, icon: Building2, color: 'text-primary', bgColor: 'bg-primary/10', href: '/buildings' },
+      { title: t('dashboard.units'), value: stats.units, icon: Home, color: 'text-accent', bgColor: 'bg-accent/10', href: '/units' },
+      { title: t('dashboard.residents'), value: stats.residents, icon: Users, color: 'text-secondary-foreground', bgColor: 'bg-secondary', href: '/residents' },
+      { title: t('dashboard.pendingFees'), value: stats.pendingFees, icon: DollarSign, color: 'text-warning', bgColor: 'bg-warning/10', href: '/fees?status=pending' },
+      { title: t('dashboard.openRequests'), value: stats.openRequests, icon: Wrench, color: 'text-info', bgColor: 'bg-info/10', href: '/maintenance' },
+      { title: t('dashboard.pendingEstimates'), value: stats.pendingEstimates, icon: TrendingUp, color: 'text-success', bgColor: 'bg-success/10', href: '/estimates' },
     ];
 
     return (
       <AppLayout 
-        title={
-          <div className="flex items-center gap-3">
-            <span>Dashboard</span>
-            <RoleBadge role="admin" />
-          </div>
-        } 
-        description={`Welcome back, ${userName}`}
+        title={<div className="flex items-center gap-3"><span>{t('dashboard.title')}</span><RoleBadge role="admin" /></div>} 
+        description={t('dashboard.welcomeBack', { name: userName })}
       >
         <div className="space-y-8">
           {/* Quick Stats */}
@@ -250,35 +205,15 @@ export default function Dashboard() {
           {/* Quick Actions */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Quick Actions</CardTitle>
-              <CardDescription>Get started with common tasks</CardDescription>
+              <CardTitle className="text-lg">{t('dashboard.quickActions')}</CardTitle>
+              <CardDescription>{t('dashboard.quickActionsDesc')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-3">
-                <Button asChild>
-                  <Link to="/buildings">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Building
-                  </Link>
-                </Button>
-                <Button variant="outline" asChild>
-                  <Link to="/maintenance">
-                    <Wrench className="mr-2 h-4 w-4" />
-                    View Maintenance Requests
-                  </Link>
-                </Button>
-                <Button variant="outline" asChild>
-                  <Link to="/fees">
-                    <DollarSign className="mr-2 h-4 w-4" />
-                    Manage Fees
-                  </Link>
-                </Button>
-                <Button variant="outline" asChild>
-                  <Link to="/announcements">
-                    <Megaphone className="mr-2 h-4 w-4" />
-                    Post Announcement
-                  </Link>
-                </Button>
+                <Button asChild><Link to="/buildings"><Plus className="mr-2 h-4 w-4" />{t('dashboard.addBuilding')}</Link></Button>
+                <Button variant="outline" asChild><Link to="/maintenance"><Wrench className="mr-2 h-4 w-4" />{t('dashboard.viewRequests')}</Link></Button>
+                <Button variant="outline" asChild><Link to="/fees"><DollarSign className="mr-2 h-4 w-4" />{t('dashboard.manageFees')}</Link></Button>
+                <Button variant="outline" asChild><Link to="/announcements"><Megaphone className="mr-2 h-4 w-4" />{t('dashboard.postAnnouncement')}</Link></Button>
               </div>
             </CardContent>
           </Card>
