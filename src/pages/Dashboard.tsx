@@ -165,54 +165,12 @@ export default function Dashboard() {
   // Admin Dashboard
   if (isAdmin) {
     const statCards = [
-      {
-        title: 'Buildings',
-        value: stats.buildings,
-        icon: Building2,
-        color: 'text-primary',
-        bgColor: 'bg-primary/10',
-        href: '/buildings',
-      },
-      {
-        title: 'Units',
-        value: stats.units,
-        icon: Home,
-        color: 'text-accent',
-        bgColor: 'bg-accent/10',
-        href: '/units',
-      },
-      {
-        title: 'Residents',
-        value: stats.residents,
-        icon: Users,
-        color: 'text-secondary-foreground',
-        bgColor: 'bg-secondary',
-        href: '/residents',
-      },
-      {
-        title: 'Pending Fees',
-        value: stats.pendingFees,
-        icon: DollarSign,
-        color: 'text-warning',
-        bgColor: 'bg-warning/10',
-        href: '/fees?status=pending',
-      },
-      {
-        title: 'Open Requests',
-        value: stats.openRequests,
-        icon: Wrench,
-        color: 'text-info',
-        bgColor: 'bg-info/10',
-        href: '/maintenance',
-      },
-      {
-        title: 'Pending Estimates',
-        value: stats.pendingEstimates,
-        icon: TrendingUp,
-        color: 'text-success',
-        bgColor: 'bg-success/10',
-        href: '/estimates',
-      },
+      { title: t('dashboard.buildings'), value: stats.buildings, icon: Building2, color: 'text-primary', bgColor: 'bg-primary/10', href: '/buildings' },
+      { title: t('dashboard.units'), value: stats.units, icon: Home, color: 'text-accent', bgColor: 'bg-accent/10', href: '/units' },
+      { title: t('dashboard.residents'), value: stats.residents, icon: Users, color: 'text-secondary-foreground', bgColor: 'bg-secondary', href: '/residents' },
+      { title: t('dashboard.pendingFees'), value: stats.pendingFees, icon: DollarSign, color: 'text-warning', bgColor: 'bg-warning/10', href: '/fees?status=pending' },
+      { title: t('dashboard.openRequests'), value: stats.openRequests, icon: Wrench, color: 'text-info', bgColor: 'bg-info/10', href: '/maintenance' },
+      { title: t('dashboard.pendingEstimates'), value: stats.pendingEstimates, icon: TrendingUp, color: 'text-success', bgColor: 'bg-success/10', href: '/estimates' },
     ];
 
     return (
