@@ -43,6 +43,7 @@ interface ResidentStats {
 
 export default function Dashboard() {
   const { user, hasRole, roles } = useAuth();
+  const { t, formatCurrency } = useLanguage();
   const [stats, setStats] = useState<DashboardStats>({
     buildings: 0,
     units: 0,
