@@ -44,7 +44,8 @@ export function AppLayout({ children, title, description }: AppLayoutProps) {
               )}
             </div>
           )}
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-1">
+            <LanguageSelector />
             <ThemeToggle />
           </div>
         </header>
