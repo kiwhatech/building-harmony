@@ -607,7 +607,7 @@ export const defaultTranslations: Record<Locale, Record<string, string>> = {
     "auth.passwordsMismatch": "Le password non corrispondono",
 
     // Dashboard
-    "dashboard.title": "Ale Gay",
+    "dashboard.title": "Pannello",
     "dashboard.welcomeBack": "Bentornato, {{name}}",
     "dashboard.buildings": "Edifici",
     "dashboard.units": "Unità",
