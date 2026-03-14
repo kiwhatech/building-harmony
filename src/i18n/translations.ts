@@ -1033,7 +1033,7 @@ export const defaultTranslations: Record<Locale, Record<string, string>> = {
 
     // Millesimi Import
     "millesimi.import.title": "Importa Tabella Millesimale",
-    "millesimi.import.button": "Importa Millesimi",
+    "millesimi.import.button": "Importa Units",
     "millesimi.import.selectBuildingDesc": "Seleziona l'edificio di destinazione per l'importazione millesimale.",
     "millesimi.import.uploadDesc": "Carica un file PDF o Excel contenente i dati millesimali.",
     "millesimi.import.previewDesc": "Revisiona {{count}} unità estratte. Modifica i valori prima di salvare.",
