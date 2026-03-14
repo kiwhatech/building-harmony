@@ -1,4 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { encode as base64Encode } from "https://deno.land/std@0.224.0/encoding/base64.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -36,8 +37,9 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Use Deno's base64 encoder to handle large files without stack overflow
     const arrayBuffer = await file.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const base64 = base64Encode(new Uint8Array(arrayBuffer));
 
     const isPdf = file.type === 'application/pdf' || fileName.endsWith('.pdf');
     const mimeType = isPdf ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
@@ -123,7 +125,7 @@ Rules:
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      throw new Error('Failed to process file with AI');
+      throw new Error(`Failed to process file with AI (status ${response.status})`);
     }
 
     const aiResult = await response.json();
