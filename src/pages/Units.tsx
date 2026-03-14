@@ -274,7 +274,7 @@ export default function Units() {
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => setImportDialogOpen(true)} disabled={buildings.length === 0}>
                 <Upload className="mr-2 h-4 w-4" />
-                Import Millesimi
+                Import Units
               </Button>
             <Dialog open={isDialogOpen} onOpenChange={(open) => {
               setIsDialogOpen(open);
