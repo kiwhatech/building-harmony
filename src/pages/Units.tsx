@@ -91,6 +91,7 @@ export default function Units() {
   const [bedrooms, setBedrooms] = useState('');
   const [bathrooms, setBathrooms] = useState('');
   const [areaSqft, setAreaSqft] = useState('');
+  const [millesimi, setMillesimi] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -149,6 +150,7 @@ export default function Units() {
     setBedrooms('');
     setBathrooms('');
     setAreaSqft('');
+    setMillesimi('');
     setEditingUnit(null);
   };
 
@@ -160,6 +162,7 @@ export default function Units() {
     setBedrooms(unit.bedrooms?.toString() || '');
     setBathrooms(unit.bathrooms?.toString() || '');
     setAreaSqft(unit.area_sqft?.toString() || '');
+    setMillesimi((unit as any).millesimi?.toString() || '');
     setIsDialogOpen(true);
   };
 
@@ -175,6 +178,7 @@ export default function Units() {
         bedrooms: bedrooms ? parseInt(bedrooms) : null,
         bathrooms: bathrooms ? parseFloat(bathrooms) : null,
         area_sqft: areaSqft ? parseFloat(areaSqft) : null,
+        millesimi: millesimi ? parseFloat(millesimi) : null,
       };
 
       if (editingUnit) {
@@ -353,15 +357,28 @@ export default function Units() {
                       />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="areaSqft">Area (sq ft)</Label>
-                    <Input
-                      id="areaSqft"
-                      type="number"
-                      value={areaSqft}
-                      onChange={(e) => setAreaSqft(e.target.value)}
-                      placeholder="850"
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="areaSqft">Area (sq ft)</Label>
+                      <Input
+                        id="areaSqft"
+                        type="number"
+                        value={areaSqft}
+                        onChange={(e) => setAreaSqft(e.target.value)}
+                        placeholder="850"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="millesimi">Millesimi</Label>
+                      <Input
+                        id="millesimi"
+                        type="number"
+                        step="0.01"
+                        value={millesimi}
+                        onChange={(e) => setMillesimi(e.target.value)}
+                        placeholder="45.50"
+                      />
+                    </div>
                   </div>
                 </div>
                 <DialogFooter>
