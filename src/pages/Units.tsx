@@ -357,15 +357,28 @@ export default function Units() {
                       />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="areaSqft">Area (sq ft)</Label>
-                    <Input
-                      id="areaSqft"
-                      type="number"
-                      value={areaSqft}
-                      onChange={(e) => setAreaSqft(e.target.value)}
-                      placeholder="850"
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="areaSqft">Area (sq ft)</Label>
+                      <Input
+                        id="areaSqft"
+                        type="number"
+                        value={areaSqft}
+                        onChange={(e) => setAreaSqft(e.target.value)}
+                        placeholder="850"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="millesimi">Millesimi</Label>
+                      <Input
+                        id="millesimi"
+                        type="number"
+                        step="0.01"
+                        value={millesimi}
+                        onChange={(e) => setMillesimi(e.target.value)}
+                        placeholder="45.50"
+                      />
+                    </div>
                   </div>
                 </div>
                 <DialogFooter>
