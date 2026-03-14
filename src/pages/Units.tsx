@@ -443,8 +443,9 @@ export default function Units() {
                   <TableHead>Unit</TableHead>
                   <TableHead>Building</TableHead>
                   <TableHead>Floor</TableHead>
-                  <TableHead>Details</TableHead>
-                  <TableHead>Residents</TableHead>
+                    <TableHead className="text-right">Millesimi</TableHead>
+                    <TableHead>Details</TableHead>
+                    <TableHead>Residents</TableHead>
                   {isAdmin && <TableHead className="w-12"></TableHead>}
                 </TableRow>
               </TableHeader>
