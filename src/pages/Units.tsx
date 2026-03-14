@@ -162,6 +162,7 @@ export default function Units() {
     setBedrooms(unit.bedrooms?.toString() || '');
     setBathrooms(unit.bathrooms?.toString() || '');
     setAreaSqft(unit.area_sqft?.toString() || '');
+    setMillesimi((unit as any).millesimi?.toString() || '');
     setIsDialogOpen(true);
   };
 
