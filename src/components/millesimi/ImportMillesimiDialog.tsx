@@ -177,12 +177,13 @@ export function ImportMillesimiDialog({ open, onOpenChange, buildings, onSuccess
     setIsSaving(true);
 
     try {
-      // 1. Create units
+      // 1. Create units with millesimi
       const unitInserts = units.map((u) => ({
         building_id: selectedBuildingId,
         unit_number: u.unit_number,
         floor: u.floor,
         area_sqft: u.area_sqft,
+        millesimi: u.millesimi_value,
       }));
 
       const { data: createdUnits, error: unitErr } = await supabase
