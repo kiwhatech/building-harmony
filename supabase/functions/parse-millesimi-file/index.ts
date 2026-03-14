@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
     }
 
     const arrayBuffer = await file.arrayBuffer();
-    const base64 = base64Encode(new Uint8Array(arrayBuffer));
+    const base64 = encodeBase64(new Uint8Array(arrayBuffer));
 
     const isPdf = file.type === 'application/pdf' || fileName.endsWith('.pdf');
     const isCsv = file.type === 'text/csv' || fileName.endsWith('.csv');
