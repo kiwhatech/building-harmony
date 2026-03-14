@@ -1,5 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { encode as base64Encode } from "https://deno.land/std@0.224.0/encoding/base64.ts";
+import { encodeBase64 } from "https://deno.land/std@0.224.0/encoding/base64.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
     }
 
     const arrayBuffer = await file.arrayBuffer();
-    const base64 = base64Encode(new Uint8Array(arrayBuffer));
+    const base64 = encodeBase64(new Uint8Array(arrayBuffer));
 
     const isPdf = file.type === 'application/pdf' || fileName.endsWith('.pdf');
     const isCsv = file.type === 'text/csv' || fileName.endsWith('.csv');
