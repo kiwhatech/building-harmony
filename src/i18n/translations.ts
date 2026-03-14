@@ -495,8 +495,8 @@ export const defaultTranslations: Record<Locale, Record<string, string>> = {
     "translations.synced": "Translations synced to database",
 
     // Millesimi Import
-    "millesimi.import.title": "Import Millesimi Table",
-    "millesimi.import.button": "Import Millesimi",
+    "millesimi.import.title": "Import Unit Table",
+    "millesimi.import.button": "Import Unit",
     "millesimi.import.selectBuildingDesc": "Select the target building for the millesimi import.",
     "millesimi.import.uploadDesc": "Upload a PDF or Excel file containing millesimi data.",
     "millesimi.import.previewDesc": "Review {{count}} extracted units. Edit values before saving.",
@@ -526,7 +526,7 @@ export const defaultTranslations: Record<Locale, Record<string, string>> = {
     "millesimi.import.unitsToImport": "Units to Import",
     "millesimi.import.totalMillesimi": "Total Millesimi",
     "millesimi.import.willCreate": "{{count}} units will be created in the building",
-    "millesimi.import.willCreateTable": "Millesimi table \"{{label}}\" ({{code}}) will be created",
+    "millesimi.import.willCreateTable": 'Millesimi table "{{label}}" ({{code}}) will be created',
     "millesimi.import.willCreateResidents": "{{count}} owner(s) will be added as residents",
     "millesimi.import.continue": "Continue",
     "millesimi.import.reviewConfirm": "Review & Confirm",
@@ -1063,7 +1063,7 @@ export const defaultTranslations: Record<Locale, Record<string, string>> = {
     "millesimi.import.unitsToImport": "Unità da Importare",
     "millesimi.import.totalMillesimi": "Totale Millesimi",
     "millesimi.import.willCreate": "{{count}} unità saranno create nell'edificio",
-    "millesimi.import.willCreateTable": "Tabella millesimale \"{{label}}\" ({{code}}) sarà creata",
+    "millesimi.import.willCreateTable": 'Tabella millesimale "{{label}}" ({{code}}) sarà creata',
     "millesimi.import.willCreateResidents": "{{count}} proprietario/i saranno aggiunti come residenti",
     "millesimi.import.continue": "Continua",
     "millesimi.import.reviewConfirm": "Rivedi e Conferma",
