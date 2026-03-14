@@ -36,6 +36,7 @@ interface MillesimiTable { id: string; building_id: string; code: string; label:
 interface MillesimiValue { id: string; millesimi_table_id: string; unit_id: string; value: number; }
 interface BudgetCategory { id: string; budget_id: string; millesimi_table_id: string; code: string; label: string; total: number; }
 interface BuildingBudget { id: string; building_id: string; year: number; total_amount: number; start_date: string; end_date: string; categories?: BudgetCategory[]; }
+interface Resident { id: string; unit_id: string; name: string; surname: string; is_owner: boolean | null; }
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
