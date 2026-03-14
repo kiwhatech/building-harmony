@@ -104,11 +104,11 @@ export function ImportMillesimiDialog({
       const formData = new FormData();
       formData.append('file', file);
 
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
       const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/parse-millesimi-file`,
+        `${supabaseUrl}/functions/v1/parse-millesimi-file`,
         {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${anonKey}` },
