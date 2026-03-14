@@ -464,6 +464,9 @@ export default function Units() {
                       {unit.building_name}
                     </TableCell>
                     <TableCell>{unit.floor || '-'}</TableCell>
+                    <TableCell className="text-right font-medium">
+                      {(unit as any).millesimi != null ? (unit as any).millesimi : '—'}
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3 text-sm text-muted-foreground">
                         {unit.bedrooms && (
