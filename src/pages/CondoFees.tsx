@@ -113,13 +113,14 @@ export default function CondoFees() {
 
   const fetchAll = async () => {
     try {
-      const [bRes, uRes, mtRes, mvRes, bbRes, bcRes] = await Promise.all([
+      const [bRes, uRes, mtRes, mvRes, bbRes, bcRes, rRes] = await Promise.all([
         supabase.from('buildings').select('id, name').order('name'),
         supabase.from('units').select('id, unit_number, building_id, area_sqft').order('unit_number'),
         supabase.from('millesimi_tables').select('*').order('code'),
         supabase.from('millesimi_values').select('*'),
         supabase.from('building_budgets').select('*').order('start_date', { ascending: false }),
         supabase.from('budget_categories').select('*'),
+        supabase.from('residents').select('id, unit_id, name, surname, is_owner'),
       ]);
       if (bRes.error) throw bRes.error;
       setBuildings(bRes.data || []);
@@ -128,6 +129,7 @@ export default function CondoFees() {
       setMillesimiValues(mvRes.data || []);
       setBudgets(bbRes.data || []);
       setBudgetCategories(bcRes.data || []);
+      setResidents(rRes.data || []);
       if (!selectedBuilding && bRes.data?.length) setSelectedBuilding(bRes.data[0].id);
     } catch (e: any) {
       console.error(e);
