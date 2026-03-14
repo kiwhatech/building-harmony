@@ -44,7 +44,9 @@ import {
   Bed,
   Bath,
   Ruler,
+  Upload,
 } from 'lucide-react';
+import { ImportMillesimiDialog } from '@/components/millesimi/ImportMillesimiDialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -80,6 +82,7 @@ export default function Units() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBuilding, setSelectedBuilding] = useState<string>('all');
   const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   // Form state
   const [buildingId, setBuildingId] = useState('');
@@ -264,6 +267,11 @@ export default function Units() {
             </Select>
           </div>
           {isAdmin && (
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => setImportDialogOpen(true)} disabled={buildings.length === 0}>
+                <Upload className="mr-2 h-4 w-4" />
+                Import Millesimi
+              </Button>
             <Dialog open={isDialogOpen} onOpenChange={(open) => {
               setIsDialogOpen(open);
               if (!open) resetForm();
@@ -376,6 +384,13 @@ export default function Units() {
                 </form>
               </DialogContent>
             </Dialog>
+            <ImportMillesimiDialog
+              open={importDialogOpen}
+              onOpenChange={setImportDialogOpen}
+              buildings={buildings}
+              onSuccess={fetchData}
+            />
+            </div>
           )}
         </div>
 
