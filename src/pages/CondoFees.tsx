@@ -77,6 +77,7 @@ export default function CondoFees() {
   const [millesimiValues, setMillesimiValues] = useState<MillesimiValue[]>([]);
   const [budgets, setBudgets] = useState<BuildingBudget[]>([]);
   const [budgetCategories, setBudgetCategories] = useState<BudgetCategory[]>([]);
+  const [residents, setResidents] = useState<Resident[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [selectedBuilding, setSelectedBuilding] = useState<string>('');
