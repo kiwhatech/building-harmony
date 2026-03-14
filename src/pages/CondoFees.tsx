@@ -36,6 +36,7 @@ interface MillesimiTable { id: string; building_id: string; code: string; label:
 interface MillesimiValue { id: string; millesimi_table_id: string; unit_id: string; value: number; }
 interface BudgetCategory { id: string; budget_id: string; millesimi_table_id: string; code: string; label: string; total: number; }
 interface BuildingBudget { id: string; building_id: string; year: number; total_amount: number; start_date: string; end_date: string; categories?: BudgetCategory[]; }
+interface Resident { id: string; unit_id: string; name: string; surname: string; is_owner: boolean | null; }
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -76,6 +77,7 @@ export default function CondoFees() {
   const [millesimiValues, setMillesimiValues] = useState<MillesimiValue[]>([]);
   const [budgets, setBudgets] = useState<BuildingBudget[]>([]);
   const [budgetCategories, setBudgetCategories] = useState<BudgetCategory[]>([]);
+  const [residents, setResidents] = useState<Resident[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [selectedBuilding, setSelectedBuilding] = useState<string>('');
@@ -111,13 +113,14 @@ export default function CondoFees() {
 
   const fetchAll = async () => {
     try {
-      const [bRes, uRes, mtRes, mvRes, bbRes, bcRes] = await Promise.all([
+      const [bRes, uRes, mtRes, mvRes, bbRes, bcRes, rRes] = await Promise.all([
         supabase.from('buildings').select('id, name').order('name'),
         supabase.from('units').select('id, unit_number, building_id, area_sqft').order('unit_number'),
         supabase.from('millesimi_tables').select('*').order('code'),
         supabase.from('millesimi_values').select('*'),
         supabase.from('building_budgets').select('*').order('start_date', { ascending: false }),
         supabase.from('budget_categories').select('*'),
+        supabase.from('residents').select('id, unit_id, name, surname, is_owner'),
       ]);
       if (bRes.error) throw bRes.error;
       setBuildings(bRes.data || []);
@@ -126,6 +129,7 @@ export default function CondoFees() {
       setMillesimiValues(mvRes.data || []);
       setBudgets(bbRes.data || []);
       setBudgetCategories(bcRes.data || []);
+      setResidents(rRes.data || []);
       if (!selectedBuilding && bRes.data?.length) setSelectedBuilding(bRes.data[0].id);
     } catch (e: any) {
       console.error(e);
@@ -616,6 +620,15 @@ export default function CondoFees() {
                   const sum = Math.round(vals.reduce((s, v) => s + Number(v.value), 0) * 100) / 100;
                   const isEditing = !!editingValues[mt.id];
 
+                  // Compute editing sum for real-time updates
+                  const editingSum = isEditing
+                    ? Math.round(Object.values(editingValues[mt.id] || {}).reduce((s, v) => s + (parseFloat(v) || 0), 0) * 100) / 100
+                    : sum;
+
+                  // Find budget categories that use this millesimi table for fee impact
+                  const relatedBudgetCats = budgetCategories.filter(c => c.millesimi_table_id === mt.id);
+                  const totalBudgetForTable = relatedBudgetCats.reduce((s, c) => s + c.total, 0);
+
                   return (
                     <AccordionItem key={mt.id} value={mt.id} className="rounded-lg border bg-card">
                       <AccordionTrigger className="px-4 hover:no-underline">
@@ -625,6 +638,11 @@ export default function CondoFees() {
                           <Badge variant={Math.abs(sum - 1000) < 0.01 ? 'default' : 'destructive'} className="text-xs">
                             Σ {sum}
                           </Badge>
+                          {totalBudgetForTable > 0 && (
+                            <Badge variant="outline" className="text-xs">
+                              Budget: €{totalBudgetForTable.toLocaleString()}
+                            </Badge>
+                          )}
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="px-4 pb-4">
@@ -689,18 +707,30 @@ export default function CondoFees() {
                           <TableHeader>
                             <TableRow>
                               <TableHead>Unit</TableHead>
+                              <TableHead>Owner</TableHead>
                               <TableHead className="text-right">Millesimi</TableHead>
                               <TableHead className="text-right">%</TableHead>
+                              {totalBudgetForTable > 0 && (
+                                <TableHead className="text-right">Fee Impact (€)</TableHead>
+                              )}
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {buildingUnits.map(unit => {
                               const mv = vals.find(v => v.unit_id === unit.id);
                               const val = isEditing ? (editingValues[mt.id]?.[unit.id] || '0') : String(mv?.value || 0);
-                              const pct = sum > 0 ? ((parseFloat(val) / sum) * 100).toFixed(2) : '0.00';
+                              const currentSum = isEditing ? editingSum : sum;
+                              const pct = currentSum > 0 ? ((parseFloat(val) / currentSum) * 100).toFixed(2) : '0.00';
+                              const feeImpact = currentSum > 0 ? (parseFloat(val) / currentSum) * totalBudgetForTable : 0;
+
+                              // Find owner resident for this unit
+                              const owner = residents.find(r => r.unit_id === unit.id && r.is_owner);
+                              const ownerName = owner ? `${owner.name} ${owner.surname}`.trim() : '—';
+
                               return (
                                 <TableRow key={unit.id}>
                                   <TableCell className="font-medium">Unit {unit.unit_number}</TableCell>
+                                  <TableCell className="text-muted-foreground">{ownerName}</TableCell>
                                   <TableCell className="text-right">
                                     {isEditing ? (
                                       <Input
@@ -714,15 +744,27 @@ export default function CondoFees() {
                                     ) : val}
                                   </TableCell>
                                   <TableCell className="text-right text-muted-foreground">{pct}%</TableCell>
+                                  {totalBudgetForTable > 0 && (
+                                    <TableCell className="text-right font-medium">
+                                      €{feeImpact.toFixed(2)}
+                                    </TableCell>
+                                  )}
                                 </TableRow>
                               );
                             })}
                           </TableBody>
                         </Table>
-                        {Math.abs(sum - 1000) > 0.01 && sum > 0 && (
+                        {/* Totals row */}
+                        {totalBudgetForTable > 0 && (
+                          <div className="mt-2 flex items-center justify-between rounded-md bg-muted/50 px-4 py-2 text-sm">
+                            <span className="font-medium">Total Budget Impact</span>
+                            <span className="font-semibold">€{totalBudgetForTable.toLocaleString()}</span>
+                          </div>
+                        )}
+                        {Math.abs((isEditing ? editingSum : sum) - 1000) > 0.01 && (isEditing ? editingSum : sum) > 0 && (
                           <div className="mt-3 flex items-center gap-2 rounded-md bg-warning/10 p-3 text-sm text-warning">
                             <AlertTriangle className="h-4 w-4" />
-                            La somma dei millesimi è {sum} (diversa da 1000). Gli importi saranno calcolati proporzionalmente.
+                            La somma dei millesimi è {isEditing ? editingSum : sum} (diversa da 1000). Gli importi saranno calcolati proporzionalmente.
                           </div>
                         )}
                       </AccordionContent>
