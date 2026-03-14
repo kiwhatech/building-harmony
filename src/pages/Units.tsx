@@ -91,6 +91,7 @@ export default function Units() {
   const [bedrooms, setBedrooms] = useState('');
   const [bathrooms, setBathrooms] = useState('');
   const [areaSqft, setAreaSqft] = useState('');
+  const [millesimi, setMillesimi] = useState('');
 
   useEffect(() => {
     fetchData();
