@@ -496,7 +496,7 @@ export const defaultTranslations: Record<Locale, Record<string, string>> = {
 
     // Millesimi Import
     "millesimi.import.title": "Import Unit Table",
-    "millesimi.import.button": "Import Unit",
+    "millesimi.import.button": "Import Units",
     "millesimi.import.selectBuildingDesc": "Select the target building for the millesimi import.",
     "millesimi.import.uploadDesc": "Upload a PDF or Excel file containing millesimi data.",
     "millesimi.import.previewDesc": "Review {{count}} extracted units. Edit values before saving.",
