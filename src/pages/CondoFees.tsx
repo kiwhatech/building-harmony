@@ -620,6 +620,15 @@ export default function CondoFees() {
                   const sum = Math.round(vals.reduce((s, v) => s + Number(v.value), 0) * 100) / 100;
                   const isEditing = !!editingValues[mt.id];
 
+                  // Compute editing sum for real-time updates
+                  const editingSum = isEditing
+                    ? Math.round(Object.values(editingValues[mt.id] || {}).reduce((s, v) => s + (parseFloat(v) || 0), 0) * 100) / 100
+                    : sum;
+
+                  // Find budget categories that use this millesimi table for fee impact
+                  const relatedBudgetCats = budgetCategories.filter(c => c.millesimi_table_id === mt.id);
+                  const totalBudgetForTable = relatedBudgetCats.reduce((s, c) => s + c.total, 0);
+
                   return (
                     <AccordionItem key={mt.id} value={mt.id} className="rounded-lg border bg-card">
                       <AccordionTrigger className="px-4 hover:no-underline">
@@ -629,6 +638,11 @@ export default function CondoFees() {
                           <Badge variant={Math.abs(sum - 1000) < 0.01 ? 'default' : 'destructive'} className="text-xs">
                             Σ {sum}
                           </Badge>
+                          {totalBudgetForTable > 0 && (
+                            <Badge variant="outline" className="text-xs">
+                              Budget: €{totalBudgetForTable.toLocaleString()}
+                            </Badge>
+                          )}
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="px-4 pb-4">
@@ -693,18 +707,30 @@ export default function CondoFees() {
                           <TableHeader>
                             <TableRow>
                               <TableHead>Unit</TableHead>
+                              <TableHead>Owner</TableHead>
                               <TableHead className="text-right">Millesimi</TableHead>
                               <TableHead className="text-right">%</TableHead>
+                              {totalBudgetForTable > 0 && (
+                                <TableHead className="text-right">Fee Impact (€)</TableHead>
+                              )}
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {buildingUnits.map(unit => {
                               const mv = vals.find(v => v.unit_id === unit.id);
                               const val = isEditing ? (editingValues[mt.id]?.[unit.id] || '0') : String(mv?.value || 0);
-                              const pct = sum > 0 ? ((parseFloat(val) / sum) * 100).toFixed(2) : '0.00';
+                              const currentSum = isEditing ? editingSum : sum;
+                              const pct = currentSum > 0 ? ((parseFloat(val) / currentSum) * 100).toFixed(2) : '0.00';
+                              const feeImpact = currentSum > 0 ? (parseFloat(val) / currentSum) * totalBudgetForTable : 0;
+
+                              // Find owner resident for this unit
+                              const owner = residents.find(r => r.unit_id === unit.id && r.is_owner);
+                              const ownerName = owner ? `${owner.name} ${owner.surname}`.trim() : '—';
+
                               return (
                                 <TableRow key={unit.id}>
                                   <TableCell className="font-medium">Unit {unit.unit_number}</TableCell>
+                                  <TableCell className="text-muted-foreground">{ownerName}</TableCell>
                                   <TableCell className="text-right">
                                     {isEditing ? (
                                       <Input
@@ -718,15 +744,27 @@ export default function CondoFees() {
                                     ) : val}
                                   </TableCell>
                                   <TableCell className="text-right text-muted-foreground">{pct}%</TableCell>
+                                  {totalBudgetForTable > 0 && (
+                                    <TableCell className="text-right font-medium">
+                                      €{feeImpact.toFixed(2)}
+                                    </TableCell>
+                                  )}
                                 </TableRow>
                               );
                             })}
                           </TableBody>
                         </Table>
-                        {Math.abs(sum - 1000) > 0.01 && sum > 0 && (
+                        {/* Totals row */}
+                        {totalBudgetForTable > 0 && (
+                          <div className="mt-2 flex items-center justify-between rounded-md bg-muted/50 px-4 py-2 text-sm">
+                            <span className="font-medium">Total Budget Impact</span>
+                            <span className="font-semibold">€{totalBudgetForTable.toLocaleString()}</span>
+                          </div>
+                        )}
+                        {Math.abs((isEditing ? editingSum : sum) - 1000) > 0.01 && (isEditing ? editingSum : sum) > 0 && (
                           <div className="mt-3 flex items-center gap-2 rounded-md bg-warning/10 p-3 text-sm text-warning">
                             <AlertTriangle className="h-4 w-4" />
-                            La somma dei millesimi è {sum} (diversa da 1000). Gli importi saranno calcolati proporzionalmente.
+                            La somma dei millesimi è {isEditing ? editingSum : sum} (diversa da 1000). Gli importi saranno calcolati proporzionalmente.
                           </div>
                         )}
                       </AccordionContent>
