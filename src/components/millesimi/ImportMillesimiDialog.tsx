@@ -27,10 +27,7 @@ interface Building {
 
 interface ParsedUnit {
   unit_number: string;
-  owner_name: string | null;
   millesimi_value: number;
-  floor: number | null;
-  area_sqft: number | null;
 }
 
 interface ImportMillesimiDialogProps {
@@ -45,7 +42,7 @@ type Step = 'select_building' | 'upload' | 'preview' | 'confirm';
 export function ImportMillesimiDialog({
   open, onOpenChange, buildings, onSuccess,
 }: ImportMillesimiDialogProps) {
-  const { t, formatCurrency } = useLanguage();
+  const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState<Step>('select_building');
@@ -56,7 +53,6 @@ export function ImportMillesimiDialog({
   const [parseError, setParseError] = useState('');
   const [parseNotes, setParseNotes] = useState('');
 
-  // Parsed data
   const [units, setUnits] = useState<ParsedUnit[]>([]);
   const [tableCode, setTableCode] = useState('GENERAL');
   const [tableLabel, setTableLabel] = useState('Tabella Generale');
@@ -67,6 +63,36 @@ export function ImportMillesimiDialog({
     Math.round(units.reduce((s, u) => s + u.millesimi_value, 0) * 100) / 100,
     [units]
   );
+
+  // Detect duplicates and invalid rows
+  const rowIssues = useMemo(() => {
+    const issues: Record<number, string[]> = {};
+    const seen = new Map<string, number>();
+    units.forEach((u, idx) => {
+      const problems: string[] = [];
+      if (!u.unit_number.trim()) {
+        problems.push('Missing unit name');
+      }
+      if (u.millesimi_value <= 0 || isNaN(u.millesimi_value)) {
+        problems.push('Invalid millesimi value');
+      }
+      const key = u.unit_number.trim().toLowerCase();
+      if (key && seen.has(key)) {
+        problems.push(`Duplicate of row ${(seen.get(key)!) + 1}`);
+        // Also mark the first occurrence
+        if (!issues[seen.get(key)!]) issues[seen.get(key)!] = [];
+        if (!issues[seen.get(key)!].some(p => p.startsWith('Duplicate'))) {
+          issues[seen.get(key)!].push(`Duplicate of row ${idx + 1}`);
+        }
+      } else if (key) {
+        seen.set(key, idx);
+      }
+      if (problems.length > 0) issues[idx] = problems;
+    });
+    return issues;
+  }, [units]);
+
+  const hasIssues = Object.keys(rowIssues).length > 0;
 
   const resetState = () => {
     setStep('select_building');
@@ -132,10 +158,7 @@ export function ImportMillesimiDialog({
 
       const mapped: ParsedUnit[] = result.units.map((u: any) => ({
         unit_number: String(u.unit_number || '').trim(),
-        owner_name: u.owner_name || null,
         millesimi_value: Number(u.millesimi_value) || 0,
-        floor: u.floor != null ? Number(u.floor) : null,
-        area_sqft: u.area_sqft != null ? Number(u.area_sqft) : null,
       }));
 
       setUnits(mapped);
@@ -153,13 +176,11 @@ export function ImportMillesimiDialog({
     }
   };
 
-  const updateUnit = (idx: number, field: keyof ParsedUnit, value: string | number | null) => {
+  const updateUnit = (idx: number, field: keyof ParsedUnit, value: string | number) => {
     setUnits(prev => prev.map((u, i) => {
       if (i !== idx) return u;
       if (field === 'millesimi_value') return { ...u, [field]: Number(value) || 0 };
-      if (field === 'floor') return { ...u, [field]: value != null ? Number(value) : null };
-      if (field === 'area_sqft') return { ...u, [field]: value != null ? Number(value) : null };
-      return { ...u, [field]: value };
+      return { ...u, [field]: String(value) };
     }));
   };
 
@@ -170,12 +191,11 @@ export function ImportMillesimiDialog({
     setIsSaving(true);
 
     try {
-      // 1. Create units
+      // 1. Create units with millesimi stored directly on the unit
       const unitInserts = units.map(u => ({
         building_id: selectedBuildingId,
         unit_number: u.unit_number,
-        floor: u.floor,
-        area_sqft: u.area_sqft,
+        millesimi: u.millesimi_value,
       }));
 
       const { data: createdUnits, error: unitErr } = await supabase
@@ -184,7 +204,7 @@ export function ImportMillesimiDialog({
         .select('id, unit_number');
       if (unitErr) throw unitErr;
 
-      // 2. Create millesimi table
+      // 2. Create millesimi table for Fee Configuration
       const { data: mtData, error: mtErr } = await supabase
         .from('millesimi_tables')
         .insert({
@@ -196,7 +216,7 @@ export function ImportMillesimiDialog({
         .single();
       if (mtErr) throw mtErr;
 
-      // 3. Create millesimi values
+      // 3. Create millesimi values linked to the table
       const milVals = units.map(u => {
         const created = createdUnits?.find(cu => cu.unit_number === u.unit_number);
         return {
@@ -208,28 +228,6 @@ export function ImportMillesimiDialog({
 
       const { error: mvErr } = await supabase.from('millesimi_values').insert(milVals);
       if (mvErr) throw mvErr;
-
-      // 4. Create residents if owner names are present
-      const residentsToInsert = units
-        .filter(u => u.owner_name)
-        .map(u => {
-          const created = createdUnits?.find(cu => cu.unit_number === u.unit_number);
-          const nameParts = u.owner_name!.trim().split(/\s+/);
-          const surname = nameParts.pop() || '';
-          const name = nameParts.join(' ') || surname;
-          return {
-            unit_id: created!.id,
-            name: name || surname,
-            surname: nameParts.length > 0 ? surname : '',
-            email: '',
-            is_owner: true,
-          };
-        });
-
-      if (residentsToInsert.length > 0) {
-        const { error: resErr } = await supabase.from('residents').insert(residentsToInsert);
-        if (resErr) console.error('Error creating residents:', resErr);
-      }
 
       toast.success(t('millesimi.import.savedSuccess', { count: units.length }));
       handleClose();
@@ -256,7 +254,7 @@ export function ImportMillesimiDialog({
           </DialogTitle>
           <DialogDescription>
             {step === 'select_building' && t('millesimi.import.selectBuildingDesc')}
-            {step === 'upload' && t('millesimi.import.uploadDesc')}
+            {step === 'upload' && 'Upload a file with two columns: Unit Name and Millesimi Value (CSV, XLSX, or PDF).'}
             {step === 'preview' && t('millesimi.import.previewDesc', { count: units.length })}
             {step === 'confirm' && t('millesimi.import.confirmDesc')}
           </DialogDescription>
@@ -300,6 +298,11 @@ export function ImportMillesimiDialog({
               <Building2 className="h-4 w-4 text-primary shrink-0" />
               <span>{t('millesimi.import.targetBuilding')}: <strong>{selectedBuilding?.name}</strong></span>
             </div>
+            <div className="rounded-md border border-muted bg-muted/30 p-3 text-sm text-muted-foreground">
+              <p className="font-medium mb-1">Required file format:</p>
+              <p>Two columns: <strong>Unit Name</strong> and <strong>Millesimi Value</strong></p>
+              <p className="text-xs mt-1">Supported formats: CSV, XLSX, XLS, PDF (up to 80 MB)</p>
+            </div>
             <div
               className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors"
               onClick={() => !isParsing && fileInputRef.current?.click()}
@@ -317,14 +320,14 @@ export function ImportMillesimiDialog({
                   <FileText className="h-10 w-10 text-muted-foreground/50" />
                   <div>
                     <p className="font-medium">{t('millesimi.import.clickToUpload')}</p>
-                    <p className="text-sm text-muted-foreground">{t('millesimi.import.supportedFormats')}</p>
+                    <p className="text-sm text-muted-foreground">PDF, XLSX, XLS, CSV</p>
                   </div>
                 </div>
               )}
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf,.xlsx,.xls"
+                accept=".pdf,.xlsx,.xls,.csv"
                 className="hidden"
                 onChange={handleFileSelect}
                 disabled={isParsing}
@@ -360,6 +363,13 @@ export function ImportMillesimiDialog({
               </div>
             )}
 
+            {hasIssues && (
+              <div className="flex items-start gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>Some rows have issues (highlighted in red). Fix or remove them before proceeding.</span>
+              </div>
+            )}
+
             {/* Table metadata */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
@@ -377,12 +387,11 @@ export function ImportMillesimiDialog({
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">#</TableHead>
                     <TableHead>{t('millesimi.import.col.unitNumber')}</TableHead>
-                    <TableHead>{t('millesimi.import.col.owner')}</TableHead>
                     <TableHead className="text-right">{t('millesimi.import.col.millesimi')}</TableHead>
                     <TableHead className="text-right">{t('millesimi.import.col.percent')}</TableHead>
-                    <TableHead className="text-right">{t('millesimi.import.col.floor')}</TableHead>
-                    <TableHead className="text-right">{t('millesimi.import.col.area')}</TableHead>
+                    <TableHead className="w-16">Status</TableHead>
                     <TableHead className="w-10"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -391,21 +400,15 @@ export function ImportMillesimiDialog({
                     const pct = totalMillesimi > 0
                       ? ((unit.millesimi_value / totalMillesimi) * 100).toFixed(2)
                       : '0.00';
+                    const issues = rowIssues[idx];
                     return (
-                      <TableRow key={idx}>
+                      <TableRow key={idx} className={issues ? 'bg-destructive/5' : ''}>
+                        <TableCell className="text-muted-foreground text-xs">{idx + 1}</TableCell>
                         <TableCell>
                           <Input
                             value={unit.unit_number}
                             onChange={e => updateUnit(idx, 'unit_number', e.target.value)}
-                            className="h-8 w-20"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            value={unit.owner_name || ''}
-                            onChange={e => updateUnit(idx, 'owner_name', e.target.value || null)}
-                            className="h-8"
-                            placeholder="—"
+                            className={`h-8 w-32 ${issues ? 'border-destructive' : ''}`}
                           />
                         </TableCell>
                         <TableCell className="text-right">
@@ -415,30 +418,24 @@ export function ImportMillesimiDialog({
                             min="0"
                             value={unit.millesimi_value}
                             onChange={e => updateUnit(idx, 'millesimi_value', e.target.value)}
-                            className="h-8 w-24 ml-auto text-right"
+                            className={`h-8 w-24 ml-auto text-right ${issues ? 'border-destructive' : ''}`}
                           />
                         </TableCell>
                         <TableCell className="text-right text-muted-foreground text-sm">
                           {pct}%
                         </TableCell>
-                        <TableCell className="text-right">
-                          <Input
-                            type="number"
-                            value={unit.floor ?? ''}
-                            onChange={e => updateUnit(idx, 'floor', e.target.value || null)}
-                            className="h-8 w-16 ml-auto text-right"
-                            placeholder="—"
-                          />
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={unit.area_sqft ?? ''}
-                            onChange={e => updateUnit(idx, 'area_sqft', e.target.value || null)}
-                            className="h-8 w-20 ml-auto text-right"
-                            placeholder="—"
-                          />
+                        <TableCell>
+                          {issues ? (
+                            <Badge variant="destructive" className="text-xs whitespace-nowrap" title={issues.join(', ')}>
+                              <AlertTriangle className="h-3 w-3 mr-1" />
+                              Issue
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary" className="text-xs">
+                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                              OK
+                            </Badge>
+                          )}
                         </TableCell>
                         <TableCell>
                           <Button size="icon" variant="ghost" onClick={() => removeUnit(idx)} className="h-8 w-8">
@@ -451,21 +448,18 @@ export function ImportMillesimiDialog({
                 </TableBody>
                 <TableFooter>
                   <TableRow>
-                    <TableCell colSpan={2} className="font-medium">{t('millesimi.import.total')}</TableCell>
+                    <TableCell />
+                    <TableCell className="font-medium">{t('millesimi.import.total')}</TableCell>
                     <TableCell className="text-right font-medium">{totalMillesimi}</TableCell>
                     <TableCell className="text-right font-medium">
                       {totalMillesimi > 0 ? '100.00%' : '0.00%'}
                     </TableCell>
-                    <TableCell colSpan={3}>
+                    <TableCell colSpan={2}>
                       {Math.abs(totalMillesimi - 1000) > 0.01 && totalMillesimi > 0 && (
-                        <Badge variant="destructive" className="text-xs">
-                          ≠ 1000
-                        </Badge>
+                        <Badge variant="destructive" className="text-xs">≠ 1000</Badge>
                       )}
                       {Math.abs(totalMillesimi - 1000) <= 0.01 && (
-                        <Badge variant="default" className="text-xs">
-                          ✓ 1000
-                        </Badge>
+                        <Badge variant="default" className="text-xs">✓ 1000</Badge>
                       )}
                     </TableCell>
                   </TableRow>
@@ -503,7 +497,6 @@ export function ImportMillesimiDialog({
                     <TableHeader>
                       <TableRow>
                         <TableHead>{t('millesimi.import.col.unitNumber')}</TableHead>
-                        <TableHead>{t('millesimi.import.col.owner')}</TableHead>
                         <TableHead className="text-right">{t('millesimi.import.col.millesimi')}</TableHead>
                         <TableHead className="text-right">{t('millesimi.import.col.percent')}</TableHead>
                       </TableRow>
@@ -516,7 +509,6 @@ export function ImportMillesimiDialog({
                         return (
                           <TableRow key={idx}>
                             <TableCell className="font-medium">{unit.unit_number}</TableCell>
-                            <TableCell>{unit.owner_name || '—'}</TableCell>
                             <TableCell className="text-right">{unit.millesimi_value}</TableCell>
                             <TableCell className="text-right text-muted-foreground">{pct}%</TableCell>
                           </TableRow>
@@ -525,7 +517,7 @@ export function ImportMillesimiDialog({
                     </TableBody>
                     <TableFooter>
                       <TableRow>
-                        <TableCell colSpan={2} className="font-medium">{t('millesimi.import.total')}</TableCell>
+                        <TableCell className="font-medium">{t('millesimi.import.total')}</TableCell>
                         <TableCell className="text-right font-medium">{totalMillesimi}</TableCell>
                         <TableCell className="text-right font-medium">100.00%</TableCell>
                       </TableRow>
@@ -536,9 +528,7 @@ export function ImportMillesimiDialog({
                 <div className="text-sm text-muted-foreground space-y-1">
                   <p>• {t('millesimi.import.willCreate', { count: units.length })}</p>
                   <p>• {t('millesimi.import.willCreateTable', { label: tableLabel, code: tableCode })}</p>
-                  {units.some(u => u.owner_name) && (
-                    <p>• {t('millesimi.import.willCreateResidents', { count: units.filter(u => u.owner_name).length })}</p>
-                  )}
+                  <p>• Millesimi values will be stored on each unit and available in Fee Calculator</p>
                 </div>
               </CardContent>
             </Card>
@@ -575,7 +565,7 @@ export function ImportMillesimiDialog({
           {step === 'preview' && (
             <Button
               onClick={() => setStep('confirm')}
-              disabled={units.length === 0 || units.some(u => !u.unit_number)}
+              disabled={units.length === 0 || units.some(u => !u.unit_number.trim()) || hasIssues}
             >
               {t('millesimi.import.reviewConfirm')} <ArrowRight className="ml-1 h-4 w-4" />
             </Button>

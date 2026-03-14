@@ -21,49 +21,50 @@ Deno.serve(async (req) => {
       });
     }
 
+    const fileName = file.name.toLowerCase();
     const allowedTypes = [
       'application/pdf',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'application/vnd.ms-excel',
+      'text/csv',
     ];
-
-    const fileName = file.name.toLowerCase();
-    const isAllowed = allowedTypes.includes(file.type) || fileName.endsWith('.pdf') || fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
+    const isAllowed = allowedTypes.includes(file.type) || fileName.endsWith('.pdf') || fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.csv');
 
     if (!isAllowed) {
-      return new Response(JSON.stringify({ error: 'Unsupported file type. Please upload a PDF or Excel file.' }), {
+      return new Response(JSON.stringify({ error: 'Unsupported file type. Please upload a PDF, Excel, or CSV file.' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Use Deno's base64 encoder to handle large files without stack overflow
     const arrayBuffer = await file.arrayBuffer();
     const base64 = base64Encode(new Uint8Array(arrayBuffer));
 
     const isPdf = file.type === 'application/pdf' || fileName.endsWith('.pdf');
-    const mimeType = isPdf ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    const isCsv = file.type === 'text/csv' || fileName.endsWith('.csv');
+    const mimeType = isPdf ? 'application/pdf' : isCsv ? 'text/csv' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    const systemPrompt = `You are a millesimi data extraction assistant for Italian condominium management. Extract unit information and millesimi values from the uploaded document.
+    const systemPrompt = `You are a millesimi data extraction assistant for Italian condominium management. Extract unit information from the uploaded document.
+
+The file contains a table with TWO required columns:
+1. Unit name/number (e.g. '1', '101', 'A1', 'Int. 1', 'Appartamento 3')
+2. Millesimi value (a numeric value, typically all values sum to 1000)
 
 Return a JSON object with this exact structure:
 {
   "units": [
     {
-      "unit_number": "STRING - the unit number/identifier (e.g. '1', '101', 'A1', 'Int. 1')",
-      "owner_name": "STRING or null - the owner/resident name if available",
-      "millesimi_value": NUMBER - the millesimi value for this unit (typically out of 1000 total),
-      "floor": NUMBER or null - the floor number if available,
-      "area_sqft": NUMBER or null - the area/surface in square meters if available
+      "unit_number": "STRING - the unit name/identifier",
+      "millesimi_value": NUMBER - the millesimi value for this unit
     }
   ],
-  "table_code": "STRING - suggested code for the millesimi table (e.g. 'GENERAL', 'PROPRIETA', 'RISCALDAMENTO')",
-  "table_label": "STRING - suggested label for the millesimi table (e.g. 'Tabella Generale', 'Spese Generali')",
+  "table_code": "STRING - suggested code for the millesimi table (e.g. 'GENERAL', 'PROPRIETA')",
+  "table_label": "STRING - suggested label (e.g. 'Tabella Generale')",
   "total_millesimi": NUMBER - the sum of all millesimi values,
   "notes": "STRING - any relevant notes about parsing issues or assumptions"
 }
@@ -71,12 +72,10 @@ Return a JSON object with this exact structure:
 Rules:
 - Extract ALL units with their millesimi values
 - Unit numbers should be cleaned up but preserved as found in the document
-- Owner names should include both first and last name when available
 - Millesimi values are typically numbers that sum to 1000 (but not always)
 - If the document contains multiple millesimi tables, extract the first/main one
-- If area/surface data is available (in m², mq, sqm), include it
 - If you can't determine a field, set it to null
-- If the document is unreadable or doesn't contain millesimi data, return: {"error": "Description of the issue", "units": []}
+- If the document doesn't contain millesimi data, return: {"error": "Description of the issue", "units": []}
 - Only return valid JSON, no markdown or extra text`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -94,7 +93,7 @@ Rules:
             content: [
               {
                 type: 'text',
-                text: `Extract unit numbers, owner names, and millesimi values from this ${isPdf ? 'PDF' : 'Excel'} file named "${file.name}". This is an Italian condominium millesimi table. Return only the JSON structure as specified.`,
+                text: `Extract unit names and millesimi values from this ${isPdf ? 'PDF' : isCsv ? 'CSV' : 'Excel'} file named "${file.name}". This is an Italian condominium millesimi table with two columns: unit name and millesimi value. Return only the JSON structure as specified.`,
               },
               {
                 type: 'image_url',
@@ -143,7 +142,7 @@ Rules:
     } catch {
       console.error('Failed to parse AI response:', content);
       return new Response(JSON.stringify({
-        error: 'Could not extract structured data from this file. Please ensure it contains a millesimi table with unit numbers and values.',
+        error: 'Could not extract structured data from this file. Please ensure it contains a millesimi table with unit names and values.',
         units: [],
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
