@@ -178,6 +178,7 @@ export default function Units() {
         bedrooms: bedrooms ? parseInt(bedrooms) : null,
         bathrooms: bathrooms ? parseFloat(bathrooms) : null,
         area_sqft: areaSqft ? parseFloat(areaSqft) : null,
+        millesimi: millesimi ? parseFloat(millesimi) : null,
       };
 
       if (editingUnit) {
