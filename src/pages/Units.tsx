@@ -150,6 +150,7 @@ export default function Units() {
     setBedrooms('');
     setBathrooms('');
     setAreaSqft('');
+    setMillesimi('');
     setEditingUnit(null);
   };
 
