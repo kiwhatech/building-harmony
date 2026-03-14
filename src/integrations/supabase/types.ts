@@ -1172,6 +1172,7 @@ export type Database = {
           created_at: string
           floor: number | null
           id: string
+          millesimi: number | null
           unit_number: string
           updated_at: string
         }
@@ -1183,6 +1184,7 @@ export type Database = {
           created_at?: string
           floor?: number | null
           id?: string
+          millesimi?: number | null
           unit_number: string
           updated_at?: string
         }
@@ -1194,6 +1196,7 @@ export type Database = {
           created_at?: string
           floor?: number | null
           id?: string
+          millesimi?: number | null
           unit_number?: string
           updated_at?: string
         }

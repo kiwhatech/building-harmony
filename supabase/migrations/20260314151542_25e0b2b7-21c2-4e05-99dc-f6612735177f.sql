@@ -1,0 +1,1 @@
+ALTER TABLE public.units ADD COLUMN IF NOT EXISTS millesimi numeric NULL DEFAULT NULL;
