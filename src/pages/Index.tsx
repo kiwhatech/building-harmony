@@ -31,8 +31,8 @@ const Index = () => {
       <div className="absolute top-4 right-4"><LanguageSelector /></div>
       <div className="container mx-auto px-4 py-16">
         <div className="flex flex-col items-center text-center">
-          <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-primary text-primary-foreground shadow-lg">
-            <Building2 className="h-10 w-10" />
+          <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl border-2 border-[hsl(40,100%,50%)] bg-transparent p-1">
+            <img src={harmonyLogo} alt="Harmony Logo" className="h-full w-full object-contain rounded-2xl" />
           </div>
           <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
             {t('landing.welcome')} <span className="text-primary">{t('landing.appName')}</span>
