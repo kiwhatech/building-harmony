@@ -62,6 +62,7 @@ export const defaultTranslations: Record<Locale, Record<string, string>> = {
 
     // Navigation
     "nav.dashboard": "Dashboard",
+    "nav.condominiums": "Condominiums",
     "nav.buildings": "Buildings",
     "nav.units": "Units",
     "nav.residents": "Residents",
