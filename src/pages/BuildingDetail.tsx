@@ -101,7 +101,7 @@ export default function BuildingDetail() {
     try {
       const { data, error } = await supabase
         .from('buildings')
-        .select('*')
+        .select('*, condominiums(name)')
         .eq('id', id!)
         .single();
 
@@ -110,6 +110,7 @@ export default function BuildingDetail() {
       const bank = (data.bank_details ?? {}) as Record<string, string>;
       const b: BuildingData = { ...data, bank_details: bank } as BuildingData;
       setBuilding(b);
+      setCondominiumName((data as any).condominiums?.name || null);
 
       const { count } = await supabase
         .from('units')
