@@ -37,7 +37,7 @@ const Index = () => {
           <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
             {t('landing.welcome')} <span className="text-[#ffaa00]">{t('landing.appName')}</span>
           </h1>
-          <p className="mb-8 max-w-2xl text-lg text-muted-foreground sm:text-xl">{t('landing.subtitle')}</p>
+          <p className="mb-8 max-w-2xl text-lg text-muted-foreground sm:text-xl whitespace-pre-line">{t('landing.subtitle')}</p>
           <div className="flex flex-col gap-4 sm:flex-row">
             <Button asChild size="lg" className="text-lg px-8"><Link to="/auth">{t('landing.getStarted')}</Link></Button>
             <Button size="lg" variant="outline" className="text-lg px-8" onClick={() => setShowCodeDialog(true)}>{t('landing.signIn')}</Button>
