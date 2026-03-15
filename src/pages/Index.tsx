@@ -35,7 +35,7 @@ const Index = () => {
             <img src={harmonyLogo} alt="Harmony Logo" className="h-full w-full object-contain rounded-2xl" />
           </div>
           <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-            {t('landing.welcome')} <span className="text-primary">{t('landing.appName')}</span>
+            {t('landing.welcome')} <span className="text-[#ffaa00]">{t('landing.appName')}</span>
           </h1>
           <p className="mb-8 max-w-2xl text-lg text-muted-foreground sm:text-xl">{t('landing.subtitle')}</p>
           <div className="flex flex-col gap-4 sm:flex-row">
@@ -46,21 +46,21 @@ const Index = () => {
 
         <div className="mt-24 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {[
-            { icon: Building2, color: 'primary', titleKey: 'landing.features.multiBuilding.title', descKey: 'landing.features.multiBuilding.desc' },
-            { icon: DollarSign, color: 'accent', titleKey: 'landing.features.feeManagement.title', descKey: 'landing.features.feeManagement.desc' },
-            { icon: Wrench, color: 'info', titleKey: 'landing.features.maintenance.title', descKey: 'landing.features.maintenance.desc' },
-            { icon: Users, color: 'success', titleKey: 'landing.features.roles.title', descKey: 'landing.features.roles.desc' },
-            { icon: Bell, color: 'warning', titleKey: 'landing.features.notifications.title', descKey: 'landing.features.notifications.desc' },
-            { icon: CheckCircle2, color: 'secondary', titleKey: 'landing.features.reports.title', descKey: 'landing.features.reports.desc' },
-          ].map((feature, i) => (
-            <div key={i} className="rounded-2xl border bg-card p-6 shadow-sm transition-all hover:shadow-md">
+          { icon: Building2, color: 'primary', titleKey: 'landing.features.multiBuilding.title', descKey: 'landing.features.multiBuilding.desc' },
+          { icon: DollarSign, color: 'accent', titleKey: 'landing.features.feeManagement.title', descKey: 'landing.features.feeManagement.desc' },
+          { icon: Wrench, color: 'info', titleKey: 'landing.features.maintenance.title', descKey: 'landing.features.maintenance.desc' },
+          { icon: Users, color: 'success', titleKey: 'landing.features.roles.title', descKey: 'landing.features.roles.desc' },
+          { icon: Bell, color: 'warning', titleKey: 'landing.features.notifications.title', descKey: 'landing.features.notifications.desc' },
+          { icon: CheckCircle2, color: 'secondary', titleKey: 'landing.features.reports.title', descKey: 'landing.features.reports.desc' }].
+          map((feature, i) =>
+          <div key={i} className="rounded-2xl border bg-card p-6 shadow-sm transition-all hover:shadow-md">
               <div className={`mb-4 inline-flex rounded-xl bg-${feature.color}/10 p-3`}>
                 <feature.icon className={`h-6 w-6 text-${feature.color}`} />
               </div>
               <h3 className="mb-2 text-xl font-semibold">{t(feature.titleKey)}</h3>
               <p className="text-muted-foreground">{t(feature.descKey)}</p>
             </div>
-          ))}
+          )}
         </div>
 
         <div className="mt-24 rounded-3xl bg-primary p-8 text-center text-primary-foreground sm:p-12">
@@ -90,8 +90,8 @@ const Index = () => {
               placeholder="Enter code"
               value={verificationCode}
               onChange={(e) => setVerificationCode(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleVerify()}
-            />
+              onKeyDown={(e) => e.key === "Enter" && handleVerify()} />
+            
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCodeDialog(false)}>Cancel</Button>
@@ -99,8 +99,8 @@ const Index = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 };
 
 export default Index;
