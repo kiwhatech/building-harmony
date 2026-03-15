@@ -985,7 +985,7 @@ export const defaultTranslations: Record<Locale, Record<string, string>> = {
     "landing.welcome": "Benvenuto su",
     "landing.appName": "Harmony",
     "landing.subtitle":
-      "La piattaforma all-in-one per la gestione condominiale. Semplifica quote, manutenzione e comunicazione tra amministratori, residenti e fornitori di servizi.",
+      "La piattaforma all-in-one per la gestione condominiale. \nSemplifica quote, manutenzione e comunicazione tra amministratori, residenti e fornitori di servizi.",
     "landing.getStarted": "Inizia Ora",
     "landing.signIn": "Accedi",
     "landing.cta.title": "Pronto a semplificare la gestione del tuo edificio?",
