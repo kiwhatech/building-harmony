@@ -11,6 +11,8 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Buildings from "./pages/Buildings";
 import BuildingDetail from "./pages/BuildingDetail";
+import Condominiums from "./pages/Condominiums";
+import CondominiumDetail from "./pages/CondominiumDetail";
 import Units from "./pages/Units";
 import Residents from "./pages/Residents";
 import Fees from "./pages/Fees";
