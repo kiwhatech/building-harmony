@@ -63,7 +63,7 @@ const Index = () => {
           )}
         </div>
 
-        <div className="mt-24 rounded-3xl bg-primary p-8 text-center text-primary-foreground sm:p-12">
+        <div className="mt-24 rounded-3xl p-8 text-center text-primary-foreground sm:p-12 bg-[#ffaa00] border-[#ffaa00]">
           <h2 className="mb-4 text-3xl font-bold sm:text-4xl">{t('landing.cta.title')}</h2>
           <p className="mb-8 text-lg opacity-90">{t('landing.cta.subtitle')}</p>
           <Button asChild size="lg" variant="secondary" className="text-lg px-8"><Link to="/auth">{t('landing.cta.button')}</Link></Button>
