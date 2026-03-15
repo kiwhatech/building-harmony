@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { RoleBadge } from '@/components/RoleBadge';
+import harmonyLogo from '@/assets/harmony-logo.jpg';
 
 export function AppSidebar() {
   const location = useLocation();

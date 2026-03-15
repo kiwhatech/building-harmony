@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Building2, CheckCircle2, Users, DollarSign, Wrench, Bell } from "lucide-react";
+import { CheckCircle2, Users, DollarSign, Wrench, Bell, Building2 } from "lucide-react";
+import harmonyLogo from "@/assets/harmony-logo.jpg";
 import { useLanguage } from "@/hooks/useLanguage";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
