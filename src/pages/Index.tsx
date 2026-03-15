@@ -11,6 +11,19 @@ import { toast } from "sonner";
 
 const Index = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
+  const [showCodeDialog, setShowCodeDialog] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+
+  const handleVerify = () => {
+    if (verificationCode === "qA0USU2DAn") {
+      setShowCodeDialog(false);
+      setVerificationCode("");
+      navigate("/auth");
+    } else {
+      toast.error("Invalid verification code");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background">
@@ -26,7 +39,7 @@ const Index = () => {
           <p className="mb-8 max-w-2xl text-lg text-muted-foreground sm:text-xl">{t('landing.subtitle')}</p>
           <div className="flex flex-col gap-4 sm:flex-row">
             <Button asChild size="lg" className="text-lg px-8"><Link to="/auth">{t('landing.getStarted')}</Link></Button>
-            <Button asChild variant="outline" size="lg" className="text-lg px-8"><Link to="/auth">{t('landing.signIn')}</Link></Button>
+            <Button size="lg" variant="outline" className="text-lg px-8" onClick={() => setShowCodeDialog(true)}>{t('landing.signIn')}</Button>
           </div>
         </div>
 
