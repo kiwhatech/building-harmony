@@ -454,11 +454,17 @@ export default function Buildings() {
                     <div className="space-y-3">
                       <p className="text-sm text-muted-foreground">{building.address}</p>
                       
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4 flex-wrap">
                         <Badge variant="secondary" className="gap-1">
                           <Home className="h-3 w-3" />
                           {building.units_count} units
                         </Badge>
+                        {building.condominium_name && (
+                          <Badge variant="outline" className="gap-1">
+                            <Landmark className="h-3 w-3" />
+                            {building.condominium_name}
+                          </Badge>
+                        )}
                       </div>
 
                       {(building.phone || building.email) && (
