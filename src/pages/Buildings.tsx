@@ -53,8 +53,10 @@ interface Building {
   zip_code: string | null;
   phone: string | null;
   email: string | null;
+  condominium_id: string | null;
   created_at: string;
   units_count?: number;
+  condominium_name?: string;
 }
 
 export default function Buildings() {
