@@ -254,6 +254,7 @@ export default function BuildingDetail() {
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               <InfoItem icon={<Home className="h-4 w-4" />} label="Units" value={`${unitsCount} units`} />
               <InfoItem icon={<Calendar className="h-4 w-4" />} label="Year of Construction" value={building.year_of_construction?.toString() || '—'} />
+              {condominiumName && <InfoItem icon={<Landmark className="h-4 w-4" />} label="Condominium" value={condominiumName} />}
               <InfoItem icon={<Phone className="h-4 w-4" />} label="Phone" value={building.phone || '—'} />
               <InfoItem icon={<Mail className="h-4 w-4" />} label="Email" value={building.email || '—'} />
               <InfoItem icon={<MapPin className="h-4 w-4" />} label="ZIP Code" value={building.zip_code || '—'} />
