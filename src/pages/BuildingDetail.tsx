@@ -66,6 +66,7 @@ export default function BuildingDetail() {
   const isAdmin = hasRole('admin');
 
   const [building, setBuilding] = useState<BuildingData | null>(null);
+  const [condominiumName, setCondominiumName] = useState<string | null>(null);
   const [unitsCount, setUnitsCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [editSection, setEditSection] = useState<EditSection>(null);
