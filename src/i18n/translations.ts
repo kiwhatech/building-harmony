@@ -597,6 +597,7 @@ export const defaultTranslations: Record<Locale, Record<string, string>> = {
 
     // Navigation
     "nav.dashboard": "Pannello",
+    "nav.condominiums": "Condomìni",
     "nav.buildings": "Edifici",
     "nav.units": "Unità",
     "nav.residents": "Residenti",

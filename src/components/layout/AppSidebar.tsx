@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Building2, Home, Users, DollarSign, Wrench, BarChart3, Megaphone,
-  Settings, LogOut, Bell, ChevronDown, Vote, FolderOpen, Calculator, Sparkles, HardHat, CreditCard,
+  Settings, LogOut, Bell, ChevronDown, Vote, FolderOpen, Calculator, Sparkles, HardHat, CreditCard, Landmark,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
