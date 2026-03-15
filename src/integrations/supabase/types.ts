@@ -194,6 +194,7 @@ export type Database = {
           admin_name: string | null
           bank_details: Json | null
           city: string | null
+          condominium_id: string | null
           contract_info: string | null
           created_at: string
           created_by: string | null
@@ -215,6 +216,7 @@ export type Database = {
           admin_name?: string | null
           bank_details?: Json | null
           city?: string | null
+          condominium_id?: string | null
           contract_info?: string | null
           created_at?: string
           created_by?: string | null
@@ -236,6 +238,7 @@ export type Database = {
           admin_name?: string | null
           bank_details?: Json | null
           city?: string | null
+          condominium_id?: string | null
           contract_info?: string | null
           created_at?: string
           created_by?: string | null
@@ -250,6 +253,74 @@ export type Database = {
           state?: string | null
           updated_at?: string
           year_of_construction?: number | null
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "buildings_condominium_id_fkey"
+            columns: ["condominium_id"]
+            isOneToOne: false
+            referencedRelation: "condominiums"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      condominiums: {
+        Row: {
+          address: string
+          city: string | null
+          common_services: string | null
+          created_at: string
+          created_by: string | null
+          fiscal_code: string | null
+          id: string
+          identifier_code: string | null
+          image_url: string | null
+          manager_email: string | null
+          manager_name: string | null
+          manager_phone: string | null
+          name: string
+          notes: string | null
+          state: string | null
+          updated_at: string
+          zip_code: string | null
+        }
+        Insert: {
+          address: string
+          city?: string | null
+          common_services?: string | null
+          created_at?: string
+          created_by?: string | null
+          fiscal_code?: string | null
+          id?: string
+          identifier_code?: string | null
+          image_url?: string | null
+          manager_email?: string | null
+          manager_name?: string | null
+          manager_phone?: string | null
+          name: string
+          notes?: string | null
+          state?: string | null
+          updated_at?: string
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string
+          city?: string | null
+          common_services?: string | null
+          created_at?: string
+          created_by?: string | null
+          fiscal_code?: string | null
+          id?: string
+          identifier_code?: string | null
+          image_url?: string | null
+          manager_email?: string | null
+          manager_name?: string | null
+          manager_phone?: string | null
+          name?: string
+          notes?: string | null
+          state?: string | null
+          updated_at?: string
           zip_code?: string | null
         }
         Relationships: []

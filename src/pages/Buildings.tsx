@@ -33,6 +33,7 @@ import {
   Trash2,
   LayoutGrid,
   List,
+  Landmark,
 } from 'lucide-react';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -53,8 +54,10 @@ interface Building {
   zip_code: string | null;
   phone: string | null;
   email: string | null;
+  condominium_id: string | null;
   created_at: string;
   units_count?: number;
+  condominium_name?: string;
 }
 
 export default function Buildings() {
@@ -85,19 +88,23 @@ export default function Buildings() {
     try {
       const { data, error } = await supabase
         .from('buildings')
-        .select('*')
+        .select('*, condominiums(name)')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       // Fetch unit counts for each building
       const buildingsWithCounts = await Promise.all(
-        (data || []).map(async (building) => {
+        (data || []).map(async (building: any) => {
           const { count } = await supabase
             .from('units')
             .select('*', { count: 'exact', head: true })
             .eq('building_id', building.id);
-          return { ...building, units_count: count || 0 };
+          return {
+            ...building,
+            units_count: count || 0,
+            condominium_name: building.condominiums?.name || null,
+          };
         })
       );
 
@@ -448,11 +455,17 @@ export default function Buildings() {
                     <div className="space-y-3">
                       <p className="text-sm text-muted-foreground">{building.address}</p>
                       
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4 flex-wrap">
                         <Badge variant="secondary" className="gap-1">
                           <Home className="h-3 w-3" />
                           {building.units_count} units
                         </Badge>
+                        {building.condominium_name && (
+                          <Badge variant="outline" className="gap-1">
+                            <Landmark className="h-3 w-3" />
+                            {building.condominium_name}
+                          </Badge>
+                        )}
                       </div>
 
                       {(building.phone || building.email) && (

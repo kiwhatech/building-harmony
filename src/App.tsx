@@ -11,6 +11,8 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Buildings from "./pages/Buildings";
 import BuildingDetail from "./pages/BuildingDetail";
+import Condominiums from "./pages/Condominiums";
+import CondominiumDetail from "./pages/CondominiumDetail";
 import Units from "./pages/Units";
 import Residents from "./pages/Residents";
 import Fees from "./pages/Fees";
@@ -42,6 +44,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/condominiums" element={<Condominiums />} />
+            <Route path="/condominiums/:id" element={<CondominiumDetail />} />
             <Route path="/buildings" element={<Buildings />} />
             <Route path="/buildings/:id" element={<BuildingDetail />} />
             <Route path="/units" element={<Units />} />
