@@ -53,6 +53,7 @@ interface BuildingData {
   contract_info: string | null;
   legal_notes: string | null;
   image_url: string | null;
+  condominium_id: string | null;
   created_at: string;
 }
 
