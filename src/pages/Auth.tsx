@@ -82,8 +82,8 @@ export default function Auth() {
       <div className="absolute top-4 right-4"><LanguageSelector /></div>
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg">
-            <Building2 className="h-8 w-8" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-[#ffa800] bg-white p-1">
+            <img src={harmonyLogo} alt="Harmony Logo" className="h-full w-full object-contain rounded-xl" />
           </div>
           <h1 className="text-3xl font-bold text-foreground">{t('auth.appName')}</h1>
           <p className="mt-2 text-muted-foreground">{t('auth.simplifyManagement')}</p>
