@@ -26,6 +26,7 @@ export function AppSidebar() {
 
   const adminMainNavItems = [
     { icon: LayoutDashboard, label: t('nav.dashboard'), href: '/dashboard' },
+    { icon: Landmark, label: t('nav.condominiums'), href: '/condominiums' },
     { icon: Building2, label: t('nav.buildings'), href: '/buildings' },
     { icon: Home, label: t('nav.units'), href: '/units' },
     { icon: Users, label: t('nav.residents'), href: '/residents' },
