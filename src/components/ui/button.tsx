@@ -25,7 +25,7 @@ const buttonVariants = cva(
       },
     },
     defaultVariants: {
-      variant: "harmony",
+      variant: "default",
       size: "default",
     },
   },
