@@ -74,6 +74,30 @@ const Index = () => {
           <p>{t('landing.footer')}</p>
         </div>
       </footer>
+
+      <Dialog open={showCodeDialog} onOpenChange={setShowCodeDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Verification Required</DialogTitle>
+            <DialogDescription>Enter your verification code to sign in.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="verification-code">Verification Code</Label>
+            <Input
+              id="verification-code"
+              type="password"
+              placeholder="Enter code"
+              value={verificationCode}
+              onChange={(e) => setVerificationCode(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleVerify()}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCodeDialog(false)}>Cancel</Button>
+            <Button onClick={handleVerify}>Verify</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
