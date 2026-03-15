@@ -83,7 +83,7 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <Link to="/dashboard" className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-[hsl(40,100%,50%)] bg-transparent p-0.5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-[#ffa800] bg-white p-0.5">
             <img src={harmonyLogo} alt="Harmony Logo" className="h-full w-full object-contain rounded-lg" />
           </div>
           <div>
