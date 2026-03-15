@@ -33,6 +33,7 @@ import {
   Trash2,
   LayoutGrid,
   List,
+  Landmark,
 } from 'lucide-react';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
